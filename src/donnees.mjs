@@ -13,6 +13,17 @@ const geoMonde = () => GEO ??= { p50: lireJson("donnees", "ne_pays_50m.geojson")
 const rad = (x) => x * Math.PI / 180, DIR = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
 const COURT = { "United States of America": "United States", "Dem. Rep. Congo": "DR Congo" };
 
+// Countries 1:50 000 000 within ±25° of the point, world 1:110 000 000, plate boundaries, country label points
+export function geoAutour(lon, lat) {
+  const G = geoMonde(), dans = (f, m) => JSON.stringify(f.geometry.coordinates).match(/-?\d+\.?\d*,-?\d+\.?\d*/g).some((t) => { const [x, y] = t.split(",").map(Number); return Math.abs(x - lon) < m && Math.abs(y - lat) < m; });
+  return {
+    detail: { type: "FeatureCollection", features: G.p50.features.filter((f) => dans(f, 25)).map((f) => ({ type: "Feature", geometry: { type: f.geometry.type, coordinates: arr(3)(f.geometry.coordinates) } })) },
+    monde: { type: "FeatureCollection", features: G.p110.features.map((f) => ({ type: "Feature", geometry: { type: f.geometry.type, coordinates: arr(2)(f.geometry.coordinates) } })) },
+    plaques: { type: "FeatureCollection", features: G.plaques.features.map((f) => ({ type: "Feature", geometry: { type: f.geometry.type, coordinates: arr(2)(f.geometry.coordinates) } })) },
+    pays: G.p110.features.map((f) => [COURT[f.properties.NAME] ?? f.properties.NAME, +f.properties.LABEL_X.toFixed(2), +f.properties.LABEL_Y.toFixed(2), f.properties.LABELRANK]).sort((a, b) => a[3] - b[3]),
+  };
+}
+
 export async function donnees(id) {
   const d = await json(`https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/${id}.geojson`);
   const P = d.properties, [lon, lat, prof] = d.geometry.coordinates, pr = P.products;
@@ -29,13 +40,7 @@ export async function donnees(id) {
   const listeVilles = villes ? [...villes.onepager_cities, ...villes.all_cities].filter((c, i, a) => a.findIndex((x) => x.name === c.name) === i)
     .sort((a, b) => b.mmi - a.mmi).slice(0, 6).map((c) => ({ nom: c.name, lon: c.lon, lat: c.lat, pop: c.pop, mmi: +c.mmi.toFixed(2), ...depuis(c.lon, c.lat) })) : [];
 
-  const G = geoMonde(), dans = (f, m) => JSON.stringify(f.geometry.coordinates).match(/-?\d+\.?\d*,-?\d+\.?\d*/g).some((t) => { const [x, y] = t.split(",").map(Number); return Math.abs(x - lon) < m && Math.abs(y - lat) < m; });
-  const geo = {
-    detail: { type: "FeatureCollection", features: G.p50.features.filter((f) => dans(f, 25)).map((f) => ({ type: "Feature", geometry: { type: f.geometry.type, coordinates: arr(3)(f.geometry.coordinates) } })) },
-    monde: { type: "FeatureCollection", features: G.p110.features.map((f) => ({ type: "Feature", geometry: { type: f.geometry.type, coordinates: arr(2)(f.geometry.coordinates) } })) },
-    plaques: { type: "FeatureCollection", features: G.plaques.features.map((f) => ({ type: "Feature", geometry: { type: f.geometry.type, coordinates: arr(2)(f.geometry.coordinates) } })) },
-    pays: G.p110.features.map((f) => [COURT[f.properties.NAME] ?? f.properties.NAME, +f.properties.LABEL_X.toFixed(2), +f.properties.LABEL_Y.toFixed(2), f.properties.LABELRANK]).sort((a, b) => a[3] - b[3]),
-  };
+  const geo = geoAutour(lon, lat);
 
   // NASA GIBS: cloud-free Blue Marble right away; the next-day MODIS image once it exists (reels made later)
   const dossier = join(RACINE, "public", "evenements", id);

@@ -7,14 +7,15 @@ export const MODE = process.env.META_PAGE_TOKEN || process.env.X_API_KEY ? "auto
 
 export function brouillon(e, d, txt, fichiers, sortie) {
   const lignes = [
-    `**M${d.mag.toFixed(1)}** · ${d.lieu} · ${new Date(d.temps).toISOString().replace("T", " ").slice(0, 16)} UTC · [USGS](${d.url}) · [Live Atlas](${txt.lien})`,
+    txt.type === "volcan" ? `**${d.nom}** · ${d.pays ?? ""} · ${d.cas} · [Smithsonian GVP](https://volcano.si.edu/volcano.cfm?vn=${d.gvp}) · [Live Atlas](${txt.lien})`
+      : `**M${d.mag.toFixed(1)}** · ${d.lieu} · ${new Date(d.temps).toISOString().replace("T", " ").slice(0, 16)} UTC · [USGS](${d.url}) · [Live Atlas](${txt.lien})`,
     "",
     `Networks: ${e.reseaux.join(", ")}.`,
     "",
     ...(e.reseaux.includes("x") ? ["### X", "```", txt.legendes.x, "```", ""] : []),
     ...(e.reseaux.includes("instagram") || e.reseaux.includes("reel") ? ["### Instagram", "```", txt.legendes.instagram, "```", ""] : []),
     ...(e.reseaux.includes("facebook") || e.reseaux.includes("reel") ? ["### Facebook", "```", txt.legendes.facebook, "```", ""] : []),
-    ...(e.reseaux.includes("reel") ? ["### Narration", "```", txt.narration.trim(), "```", ""] : []),
+    ...(e.reseaux.includes("reel") && txt.narration ? ["### Narration", "```", txt.narration.trim(), "```", ""] : []),
   ];
   writeFileSync(join(sortie, "issue.md"), lignes.join("\n"));
   writeFileSync(join(sortie, "reseaux.txt"), e.reseaux.join(","));

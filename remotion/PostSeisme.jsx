@@ -13,11 +13,13 @@ const ICO = {
   depth: '<path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   gauge: '<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
 };
-const Ico = ({ n, taille, couleur }) => <svg width={taille} height={taille} viewBox="0 0 24 24" fill="none" stroke={couleur} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: ICO[n] }} style={{ flex: "none" }} />;
+export const Ico = ({ n, taille, couleur }) => <svg width={taille} height={taille} viewBox="0 0 24 24" fill="none" stroke={couleur} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: ICO[n] }} style={{ flex: "none" }} />;
 
 const cache = {};
-const useDonnees = (dossier) => {
+export const useDonnees = (dossier) => {
   const [d, setD] = useState(cache[dossier]);
   const [h] = useState(() => (cache[dossier] ? null : delayRender("donnees")));
   useEffect(() => { if (cache[dossier]) return; fetch(staticFile(`${dossier}/donnees.json`)).then((r) => r.json()).then((j) => { cache[dossier] = j; setD(j); continueRender(h); }); }, [dossier, h]);
@@ -25,7 +27,7 @@ const useDonnees = (dossier) => {
 };
 
 // Map: orthographic close-up, countries, faint plate boundaries, rings or ShakeMap contours, country names that never overlap
-const Carte = ({ d, W, H, cx, cy, zoom, couleur, mode, reserve = [] }) => {
+export const Carte = ({ d, W, H, cx, cy, zoom, couleur, mode, reserve = [] }) => {
   const ref = useRef(null);
   useLayoutEffect(() => {
     const k = ref.current.getContext("2d"), u = W / (W === 1600 ? 1600 : 1080);
@@ -48,7 +50,10 @@ const Carte = ({ d, W, H, cx, cy, zoom, couleur, mode, reserve = [] }) => {
       if (c) { k.save(); k.translate(c[0], c[1]); k.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 11 : 26; k.lineTo(Math.cos(a) * r, Math.sin(a) * r); } k.closePath(); k.fillStyle = couleur; k.fill(); k.lineWidth = 3; k.strokeStyle = "#fff"; k.stroke(); k.restore(); }
     } else if (c) {
       for (const [r, a, w] of [[150, 0.14, 2.5], [100, 0.28, 3], [62, 0.55, 3.5], [32, 0.9, 4]]) { k.globalAlpha = a; k.beginPath(); k.arc(c[0], c[1], r, 0, 7); k.strokeStyle = couleur; k.lineWidth = w; k.stroke(); }
-      k.globalAlpha = 1; k.shadowColor = couleur; k.shadowBlur = 40; k.beginPath(); k.arc(c[0], c[1], 14, 0, 7); k.fillStyle = "#fff"; k.fill(); k.shadowBlur = 0;
+      k.globalAlpha = 1; k.shadowColor = couleur; k.shadowBlur = 40;
+      if (mode === "volcan") { const z = 28; k.beginPath(); k.moveTo(c[0], c[1] - z); k.lineTo(c[0] + z, c[1] + z * 0.75); k.lineTo(c[0] - z, c[1] + z * 0.75); k.closePath(); k.fillStyle = "#F2A93B"; k.fill(); k.lineWidth = 3; k.strokeStyle = "#fff"; k.stroke(); }
+      else { k.beginPath(); k.arc(c[0], c[1], 14, 0, 7); k.fillStyle = "#fff"; k.fill(); }
+      k.shadowBlur = 0;
       occupe.push([c[0] - 170, c[1] - 170, c[0] + 170, c[1] + 170]);
     }
     const fs = 32, limite = W === 1600 ? H : H * 0.5;
@@ -68,7 +73,7 @@ const Carte = ({ d, W, H, cx, cy, zoom, couleur, mode, reserve = [] }) => {
   return <canvas ref={ref} width={W} height={H} style={{ position: "absolute", inset: 0, filter: "brightness(1.22) saturate(1.3) contrast(1.05)" }} />;
 };
 
-const projeter = (d, W, H, cx, cy, zoom) => geoOrthographic().rotate([-d.lon, -d.lat]).translate([W * cx, H * cy]).scale(Math.min(W, H) * 0.47 * zoom).clipAngle(90)([d.lon, d.lat]);
+export const projeter = (d, W, H, cx, cy, zoom) => geoOrthographic().rotate([-d.lon, -d.lat]).translate([W * cx, H * cy]).scale(Math.min(W, H) * 0.47 * zoom).clipAngle(90)([d.lon, d.lat]);
 // Font size that keeps a line on one line
 const taillePour = (texte, poids, max, largeur) => { const k = document.createElement("canvas").getContext("2d"); let s = max; do { k.font = `${poids} ${s}px Bricolage`; if (k.measureText(texte).width <= largeur) return s; s -= 1; } while (s > 20); return s; };
 

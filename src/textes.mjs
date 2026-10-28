@@ -93,5 +93,5 @@ export function textes(d) {
     satTitre: d.satellite.jour ? ["The Day ", "After"] : ["From ", "Space"], satLigne: d.satellite.jour ? `NASA Terra Satellite, ${new Date(d.satellite.jour + "T00:00:00Z").toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}` : "NASA Satellite View",
     lignes: lignesSecousse.slice(0, 4), conseil: conseil.cas,
   };
-  return { ecran, legendes, narration, lien };
+  return { ecran, legendes, narration, lien, type: "seisme" };
 }

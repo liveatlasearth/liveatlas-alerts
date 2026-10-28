@@ -9,12 +9,14 @@ import { carrouselInstagram, comptes, photosFacebook, reelFacebook, reelInstagra
 
 const jetonBrut = process.env.META_PAGE_TOKEN_SEISMES, base = process.argv[2], filtre = (process.env.RESEAUX || "").split(",").filter(Boolean);
 if (!jetonBrut) { console.log("Pas de jeton Meta : publication Instagram et Facebook sautée (mode brouillon)."); process.exit(0); }
-const c = await comptes(jetonBrut), jeton = c.jeton;
-console.log(`Page ${c.nomPage} (${c.page}), Instagram ${c.ig ?? "non relié"}`);
+// One Page per account: earthquakes (and tsunamis) on the "Earthquake" Page, volcanoes on the "Volcano" Page
+const pages = {};
+const compte = async (type) => (pages[type] ??= await comptes(jetonBrut, type === "volcan" ? "Volcano" : "Earthquake").then((c) => { console.log(`Page ${c.nomPage} (${c.page}), Instagram ${c.ig ?? "non relié"}`); return c; }));
 const SORTIE = join(RACINE, "sortie");
 for (const id of readdirSync(SORTIE)) {
   const dir = join(SORTIE, id); if (!existsSync(join(dir, "legendes.json"))) continue;
   const txt = JSON.parse(readFileSync(join(dir, "legendes.json"), "utf8")), reseaux = readFileSync(join(dir, "reseaux.txt"), "utf8").trim().split(",").filter((r) => !filtre.length || filtre.includes(r));
+  const c = await compte(txt.type), jeton = c.jeton;
   const url = (f) => `${base.replace("{id}", id)}/${f}`, a = (f) => existsSync(join(dir, f)), liens = [];
   const essai = async (nom, f) => { const t0 = Date.now(); try { const l = await f(); liens.push(`- ${nom} : ${l} (${Math.round((Date.now() - t0) / 1000)} s)`); console.log(nom, "→", l); } catch (e) { liens.push(`- ${nom} : ÉCHEC ${e.message}`); console.log(nom, "échec :", e.message); } };
   if (reseaux.includes("reel") && a("reel.mp4")) {

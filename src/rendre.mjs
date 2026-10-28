@@ -38,6 +38,17 @@ export async function images(d, ecran, sortie) {
   return faits;
 }
 
+export async function imagesVolcan(d, ecran, sortie) {
+  const url = await preparer(), dossier = `evenements/${d.id}`, faits = [];
+  synchroniser(d.id); mkdirSync(sortie, { recursive: true });
+  for (const [id, fichier] of [["volcan-carre", "post-4x5.jpg"], ["volcan-x", "post-16x9.jpg"]]) {
+    const inputProps = { dossier, t: ecran }, composition = await selectComposition({ serveUrl: url, id, inputProps });
+    await renderStill({ composition, serveUrl: url, frame: 0, inputProps, output: join(sortie, fichier), imageFormat: "jpeg", jpegQuality: 92 });
+    faits.push(fichier);
+  }
+  return faits;
+}
+
 export async function reel(d, ecran, narration, sortie) {
   const url = await preparer(), dossier = `evenements/${d.id}`;
   mkdirSync(sortie, { recursive: true });
