@@ -22,7 +22,7 @@ export function textes(d) {
   const m = d.lieu.match(/^(\d+) km ([NSEW]{1,3}) of (.+)$/);
   const ref = m ? m[3] : null, ligneLieu = m ? `${kmEnMi(+m[1])} mi (${m[1]} km) ${m[2]} of ${m[3]}` : d.lieu;
   // Ocean ridges and rises take "on the" ("on the Reykjanes Ridge"), other regions "in the"
-  const surDorsale = /(Ridge|Rise)$/i.test(d.lieu.replace(/ region$/, "")), article = surDorsale ? "on the" : "in the";
+  const surDorsale = / (Ridge|Rise)$/i.test(d.lieu.replace(/ region$/, "")), article = surDorsale ? "on the" : "in the";
   const pres = m ? `near ${ref}` : `${article} ${d.lieu}`;
   const region = ref ?? d.lieu.replace(/ region$/, "");
   const peuProfond = d.prof_km < 70, enMer = !surTerre(d.lon, d.lat);
