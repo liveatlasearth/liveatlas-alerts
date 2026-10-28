@@ -92,7 +92,7 @@ export function textes(d) {
   const ecran = {
     classe: c.nom, couleur: c.couleur, mag: d.mag, region, zone: null, lieuFiche: ref ?? region, lieuLigne: ligneLieu,
     coords: `${Math.abs(d.lat).toFixed(2)}°${d.lat >= 0 ? "N" : "S"} ${Math.abs(d.lon).toFixed(2)}°${d.lon >= 0 ? "E" : "W"}`,
-    date: `${mois} ${jour}`, dateLongue: `${mois} ${jour}, ${annee}`, heure, profMi: d.prof_mi, profKm: Math.round(d.prof_km), exposes: exposes ?? 0,
+    date: horaireMer ? moisUtc : `${mois} ${jour}`, dateLongue: `${mois} ${jour}, ${annee}`, heure: horaireMer ? utc : heure, libelleHeure: horaireMer ? "UTC" : "Local Time", profMi: d.prof_mi, profKm: Math.round(d.prof_km), exposes: exposes ?? 0,
     ressenti: d.ressenti ?? 0, pager: d.pager ?? null, mmiMax, satFichier: d.satellite.fichier,
     satTitre: d.satellite.jour ? ["The Day ", "After"] : ["From ", "Space"], satLigne: d.satellite.jour ? `NASA Terra Satellite, ${new Date(d.satellite.jour + "T00:00:00Z").toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}` : "NASA Satellite View",
     lignes: lignesSecousse.slice(0, 4), conseil: conseil.cas,

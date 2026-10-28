@@ -186,7 +186,8 @@ const Accroche = ({ t, S, d }) => {
           </div>
         </div>
       )}
-      <div style={{ position: "absolute", left: 72, right: 72, top: 1230, display: "flex", flexDirection: "column", opacity: sortie, transform: `translate(${sec}px, ${sec * 0.4}px)` }}>
+      {/* Instagram shows reels cropped to 3:4 in the profile grid (240 px cut at the top and bottom): pill, magnitude and place stay above y = 1600 */}
+      <div style={{ position: "absolute", left: 72, right: 72, top: 1050, display: "flex", flexDirection: "column", opacity: sortie, transform: `translate(${sec}px, ${sec * 0.4}px)` }}>
         <Pastille at={10} couleur={t.couleur}>{t.classe} Earthquake</Pastille>
         <div style={{ font: `800 340px/.86 ${F.titre}`, letterSpacing: "-.04em", color: t.couleur, textShadow: `0 0 70px ${t.couleur}88`, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
           <span style={{ fontSize: "0.42em", marginRight: 8 }}>M</span><Compte at={20} a={t.mag} dur={atterrit - 20} format={(v) => v.toFixed(1)} />

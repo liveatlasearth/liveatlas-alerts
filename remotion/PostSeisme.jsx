@@ -92,7 +92,7 @@ const Fiche = ({ t, x, y, W }) => {
       <div style={{ position: "absolute", left: g, top: y + 150, background: "rgba(11,20,28,.86)", border: `2px solid ${t.couleur}`, padding: "16px 24px 18px", display: "flex", flexDirection: "column", gap: 6, whiteSpace: "nowrap" }}>
         <b style={{ font: `800 46px/1 ${F.titre}`, color: t.couleur }}>{t.lieuFiche}</b>
         <span style={{ font: `500 21px ${F.mono}`, letterSpacing: ".12em", textTransform: "uppercase", color: "#e3eaef" }}>{t.coords}</span>
-        <span style={{ font: `500 21px ${F.mono}`, letterSpacing: ".12em", textTransform: "uppercase", color: "#e3eaef" }}>{t.date} {t.heure} Local</span>
+        <span style={{ font: `500 21px ${F.mono}`, letterSpacing: ".12em", textTransform: "uppercase", color: "#e3eaef" }}>{t.date} {t.heure} {t.libelleHeure === "UTC" ? "UTC" : "Local"}</span>
       </div>
     </>
   );
@@ -104,7 +104,8 @@ const Fait = ({ ico, couleur, valeur, libelle }) => (
   </div>
 );
 const Bloc = ({ t, largeur, style }) => {
-  const i = CLASSES.findIndex(([n]) => n === t.classe), dernier = t.pager ? ["gauge", t.pager[0].toUpperCase() + t.pager.slice(1), "Impact Level"] : ["users", String(t.ressenti || 0), "Felt Reports"];
+  // Third fact only when there is data: USGS impact level, else felt reports (never a "0")
+  const i = CLASSES.findIndex(([n]) => n === t.classe), dernier = t.pager ? ["gauge", t.pager[0].toUpperCase() + t.pager.slice(1), "Impact Level"] : t.ressenti ? ["users", String(t.ressenti), "Felt Reports"] : null;
   return (
     <div style={{ position: "absolute", display: "flex", flexDirection: "column", gap: 16, width: largeur, ...style }}>
       <span style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 12, background: t.couleur, color: "#0b141c", font: `800 34px ${F.titre}`, letterSpacing: ".04em", padding: "8px 24px", borderRadius: 40, marginBottom: 12 }}>
@@ -112,9 +113,9 @@ const Bloc = ({ t, largeur, style }) => {
       <div style={{ font: `800 230px/.86 ${F.titre}`, letterSpacing: "-.04em", color: t.couleur, textShadow: `0 0 60px ${t.couleur}73` }}><span style={{ fontSize: ".42em", marginRight: 6 }}>M</span>{t.mag.toFixed(1)}</div>
       <div style={{ font: `700 ${taillePour(t.lieuLigne, 700, 56, largeur)}px/1.12 ${F.titre}`, color: "#fff", whiteSpace: "nowrap" }}>{t.lieuLigne}</div>
       <div style={{ display: "flex", gap: 36, marginTop: 6 }}>
-        <Fait ico="clock" couleur={t.couleur} valeur={t.heure} libelle="Local Time" />
+        <Fait ico="clock" couleur={t.couleur} valeur={t.heure} libelle={t.libelleHeure ?? "Local Time"} />
         <Fait ico="depth" couleur={t.couleur} valeur={`${t.profMi} mi`} libelle={`Depth (${t.profKm} km)`} />
-        <Fait ico={dernier[0]} couleur={t.couleur} valeur={dernier[1]} libelle={dernier[2]} />
+        {dernier && <Fait ico={dernier[0]} couleur={t.couleur} valeur={dernier[1]} libelle={dernier[2]} />}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 6, marginTop: 10 }}>
         {CLASSES.map(([n, c], j) => <i key={n} style={{ height: 10, borderRadius: 5, background: c, opacity: j === i ? 1 : 0.25, boxShadow: j === i ? `0 0 18px ${c}` : "none" }} />)}
