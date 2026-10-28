@@ -2,7 +2,7 @@
 // One scene per narration paragraph: hook, essentials, satellite view, shaking zones, what to do, end card.
 // Data: public/evenements/<id>/donnees.json (src/donnees.mjs). Texts and timing come as props (src/rendre.mjs).
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { AbsoluteFill, Audio, Img, Sequence, continueRender, delayRender, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Freeze, Img, Sequence, continueRender, delayRender, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { geoDistance, geoGraticule10, geoOrthographic, geoPath } from "d3-geo";
 import { F, Logo, usePolices } from "./commun.jsx";
 
@@ -301,12 +301,12 @@ const Fin = ({ t, S }) => {
   );
 };
 
-export const AlerteSeisme = ({ dossier, t, S, audio }) => {
-  const pret = usePolices(), d = useDonnees(dossier), f = useCurrentFrame();
-  if (!d || !pret) return <AbsoluteFill style={{ background: "#0b141c" }} />;
-  const parle = (fr) => audio.parle.some(([a, b]) => fr >= a - 6 && fr <= b + 6);
+// Picture of the reel. The first 2 frames show the cover state (frame 90): players that take the first frame as thumbnail
+// (X among others) then show the magnitude, date and time instead of a counter at "M0.0".
+const Visuels = ({ d, t, S, dossier }) => {
+  const f = useCurrentFrame();
   return (
-    <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
+    <>
       <Carte d={d} S={S} couleur={t.couleur} zone={t.zone} />
       <Voile fort={f >= S.E && f < S.F ? 0.2 : 0} />
       <Accroche t={t} S={S} d={d} />
@@ -316,6 +316,17 @@ export const AlerteSeisme = ({ dossier, t, S, audio }) => {
       <QueFaire t={t} S={S} />
       {f < S.F && <Hud d={d} S={S} date={t.date} />}
       <Fin t={t} S={S} />
+    </>
+  );
+};
+
+export const AlerteSeisme = ({ dossier, t, S, audio }) => {
+  const pret = usePolices(), d = useDonnees(dossier), f = useCurrentFrame();
+  if (!d || !pret) return <AbsoluteFill style={{ background: "#0b141c" }} />;
+  const parle = (fr) => audio.parle.some(([a, b]) => fr >= a - 6 && fr <= b + 6);
+  return (
+    <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
+      {f < 2 ? <Freeze frame={90}><Visuels d={d} t={t} S={S} dossier={dossier} /></Freeze> : <Visuels d={d} t={t} S={S} dossier={dossier} />}
       {/* Son : voix devant, musique 0,14 sous la voix et 0,45 hors voix, bruitages brefs entre les phrases (REGLAGES-SON-ET-COUVERTURES.md) */}
       <Sequence from={audio.voixDebut}><Audio src={staticFile(`${dossier}/voix.mp3`)} /></Sequence>
       <Audio src={staticFile(audio.musique)} volume={(fr) => (parle(fr) ? 0.14 : 0.45) * interpolate(fr, [audio.fin - 45, audio.fin], [1, 0], CL)} />

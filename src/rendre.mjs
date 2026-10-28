@@ -55,7 +55,8 @@ export async function reel(d, ecran, narration, sortie) {
   await renderStill({ composition, serveUrl: url, frame: 90, inputProps, output: join(sortie, "reel-cover-9x16.jpg"), imageFormat: "jpeg", jpegQuality: 92 });
   const brut = join(sortie, "_brut.mp4");
   await renderMedia({ composition, serveUrl: url, codec: "h264", crf: 18, pixelFormat: "yuv420p", inputProps, outputLocation: brut });
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", brut, "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", join(sortie, "reel.mp4")]);
+  // ffmpeg bundled with Remotion (no install on the runner): sound normalized for the networks (-14 LUFS)
+  execFileSync("npx", ["remotion", "ffmpeg", "-y", "-loglevel", "error", "-i", brut, "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", join(sortie, "reel.mp4")], { shell: process.platform === "win32", cwd: RACINE });
   rmSync(brut);
   return ["reel.mp4", "reel-cover-9x16.jpg"];
 }
