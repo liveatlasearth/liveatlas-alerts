@@ -47,11 +47,21 @@ function pays(k, G, p, v) {
     k.lineWidth = 6; k.strokeStyle = "rgba(19,42,61,.85)"; k.strokeText(nom, q[0], q[1]); k.fillStyle = "rgba(232,238,242,.8)"; k.fillText(nom, q[0], q[1]);
   }
 }
+// Same globe logo as the alert reel (Logo in commun.jsx), drawn on the canvas
+function logo(k, x, y, t) {
+  const u = t / 24;
+  k.save(); k.translate(x, y); k.scale(u, u);
+  k.fillStyle = "#0b141c"; k.beginPath(); k.roundRect(0, 0, 24, 24, 6); k.fill();
+  k.strokeStyle = "#f2a93b"; k.lineWidth = 2; k.lineCap = "round";
+  k.beginPath(); k.arc(12, 12, 8, 0, 7); k.stroke();
+  k.beginPath(); k.moveTo(4, 12); k.lineTo(20, 12); k.moveTo(12, 4); k.bezierCurveTo(14.7, 6.8, 14.7, 17.2, 12, 20); k.moveTo(12, 4); k.bezierCurveTo(9.3, 6.8, 9.3, 17.2, 12, 20); k.stroke();
+  k.restore();
+}
 function habillage(k, img, semaineDe) {
   k.strokeStyle = "rgba(232,238,242,.65)"; k.lineWidth = 4;
   for (const [x, y, sx, sy] of [[34, 34, 1, 1], [1046, 34, -1, 1], [34, 1886, 1, -1], [1046, 1886, -1, -1]]) { k.beginPath(); k.moveTo(x, y + 56 * sy); k.lineTo(x, y); k.lineTo(x + 56 * sx, y); k.stroke(); }
-  if (img) k.drawImage(img, 70, 76, 64, 64);
-  k.fillStyle = "#fff"; k.font = `700 40px ${F.d}`; k.textAlign = "left"; k.textBaseline = "middle"; k.fillText("Live Atlas", 150, 110);
+  logo(k, 76, 86, 48);
+  k.fillStyle = "#fff"; k.font = `700 40px ${F.d}`; k.textAlign = "left"; k.textBaseline = "middle"; k.fillText("Live Atlas", 138, 110);
   k.font = `500 24px ${F.m}`; k.fillStyle = C.gris; k.textAlign = "right"; k.fillText(`WEEK OF ${semaineDe}`, 1010, 110);
 }
 function pastille(k, x, y, texte, col) {
@@ -191,7 +201,12 @@ function image(k, G, img, d, sc, t) {
     globe(k, G, { lon: f.lon + 15 + x * 20, lat: 0, cy: 700, R: 430 }, d.points.map(([lo, la, m]) => [lo, la, m, 0.9]));
     k.fillStyle = "rgba(11,20,28,.55)"; k.fillRect(0, 0, 1080, 1920);
     k.globalAlpha = aa;
-    if (img) k.drawImage(img, 440, 540 - 30 * (1 - aa), 200, 200);
+    // Round badge with coral rings, as on the alert reel end card
+    const fr = (t - s.de) * 30, cy = 650 - 30 * (1 - aa);
+    k.lineWidth = 5; k.strokeStyle = C.s3;
+    for (const r of [0, 1, 2]) { const a = ((fr + r * 22) % 66) / 66; k.globalAlpha = aa * (1 - a) * 0.6; k.beginPath(); k.arc(540, cy, 150 + a * 165, 0, 7); k.stroke(); }
+    k.globalAlpha = aa;
+    if (img) { k.save(); k.beginPath(); k.arc(540, cy, 150, 0, 7); k.clip(); k.drawImage(img, 390, cy - 150, 300, 300); k.restore(); }
     k.fillStyle = "#fff"; k.font = `800 96px ${F.d}`; k.textAlign = "center"; k.textBaseline = "alphabetic";
     k.fillText("Every Quake", 540, 1000); k.fillStyle = C.ambre; k.fillText("That Matters", 540, 1100);
     k.fillStyle = "rgba(232,238,242,.12)"; k.beginPath(); k.roundRect(300, 1170, 480, 72, 36); k.fill();

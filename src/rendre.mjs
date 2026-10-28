@@ -83,7 +83,8 @@ export async function reelHebdo(d, narration, sortie) {
   synchroniser(d.id);
   const paras = narration.trim().split(/\n\s*\n/).map((p) => p.trim().split(/\s+/).length);
   const debuts = []; let i = 0; for (const n of paras) { debuts.push(mots[i].start); i += n; }
-  const VO = 18, sec = (s) => (VO + s * 30 - 8) / 30, fin = Math.round(VO + mots.at(-1).end * 30) + 80;
+  // First word at about 0.2 s (whatever the silence at the start of the voice file): the narration starts with the video
+  const VO = Math.max(0, Math.round(6 - mots[0].start * 30)), sec = (s) => (VO + s * 30 - 8) / 30, fin = Math.round(VO + mots.at(-1).end * 30) + 80;
   const types = ["accroche", "classes", "fort", "actif", ...(d.mode === "deux" ? ["profond", "ressenti"] : [d.mode]), "fin"];
   const scenes = types.map((type, j) => ({ type, de: j ? Math.max(sec(debuts[j]), j === 1 ? 2.8 : 0) : 0 }));
   scenes.forEach((s, j) => { s.a = j < scenes.length - 1 ? scenes[j + 1].de : fin / 30; });
