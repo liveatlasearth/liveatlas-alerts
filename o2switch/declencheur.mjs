@@ -14,17 +14,21 @@ const DEPOT = "liveatlasearth/liveatlas-alerts", WORKFLOW = "alertes.yml";
 if (!existsSync(JETON)) { console.log(new Date().toISOString(), "pas de jeton GitHub (~/.liveatlas-alerts-token)"); process.exit(0); }
 const vus = existsSync(VUS) ? JSON.parse(readFileSync(VUS, "utf8")) : {};
 // Same detection as the workflow, with what this trigger already saw as "done": only really new events start a run
-const etat = Object.fromEntries(Object.entries(vus).map(([id, r]) => [id, Object.fromEntries(r.map((x) => [x, "vu"]))]));
+const etat = Object.fromEntries(Object.entries(vus).filter(([, r]) => Array.isArray(r)).map(([id, r]) => [id, Object.fromEntries(r.map((x) => [x, "vu"]))]));
 const nouveaux = await detecter(etat);
-if (!nouveaux.length) process.exit(0);
+// Weekly reel: Wednesday from 12:00 PM New York time, once (the workflow itself checks it was not already posted)
+const ny = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", weekday: "short", hour: "2-digit", hourCycle: "h23" }).formatToParts(new Date()).map((x) => [x.type, x.value]));
+const dateNy = `${ny.year}-${ny.month}-${ny.day}`, hebdo = ny.weekday === "Wed" && +ny.hour >= 12 && vus._hebdo !== dateNy;
+if (!nouveaux.length && !hebdo) process.exit(0);
 const r = await fetch(`https://api.github.com/repos/${DEPOT}/actions/workflows/${WORKFLOW}/dispatches`, {
   method: "POST",
   headers: { authorization: `Bearer ${readFileSync(JETON, "utf8").trim()}`, accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28", "user-agent": "liveatlas-alerts-o2switch" },
   body: JSON.stringify({ ref: "main" }),
 });
-console.log(new Date().toISOString(), nouveaux.map((e) => `${e.id} M${e.mag} ${e.reseaux.join("+")}`).join(" ; "), "→ workflow", r.status === 204 ? "lancé" : `refusé ${r.status} ${await r.text()}`);
+console.log(new Date().toISOString(), [...nouveaux.map((e) => `${e.id} M${e.mag} ${e.reseaux.join("+")}`), ...(hebdo ? ["reel hebdo"] : [])].join(" ; "), "→ workflow", r.status === 204 ? "lancé" : `refusé ${r.status} ${await r.text()}`);
 if (r.status === 204) {
   for (const e of nouveaux) vus[e.id] = [...new Set([...(vus[e.id] ?? []), ...e.reseaux])];
+  if (hebdo) vus._hebdo = dateNy;
   // Keep two days of memory
   for (const id of Object.keys(vus)) if (!nouveaux.some((e) => e.id === id) && Object.keys(vus).length > 300) delete vus[id];
   writeFileSync(VUS, JSON.stringify(vus));

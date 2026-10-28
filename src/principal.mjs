@@ -4,13 +4,15 @@
 // Usage: node src/principal.mjs              normal run
 //        node src/principal.mjs <id USGS>    build one earthquake by hand (all networks), whatever the thresholds
 //        node src/principal.mjs v<id GVP>    build one volcano by hand (e.g. v282080 for Sakurajima)
+//        node src/principal.mjs hebdo:<date> build the weekly reel of the week ending that Wednesday (e.g. hebdo:2026-10-28)
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ecrireJson, json, RACINE, SEUILS } from "./commun.mjs";
 import { detecter } from "./detecter.mjs";
 import { donnees } from "./donnees.mjs";
 import { textes } from "./textes.mjs";
-import { fermer, images, imagesVolcan, reel } from "./rendre.mjs";
+import { fermer, images, imagesVolcan, reel, reelHebdo } from "./rendre.mjs";
+import { donneesHebdo, ecrireHebdo, hebdoDu, textesHebdo } from "./hebdo.mjs";
 import { brouillon } from "./publier.mjs";
 import { detecterVolcans, donneesVolcan, lireVolcans, memoriser, niveaux, textesVolcan } from "./volcans.mjs";
 
@@ -23,7 +25,7 @@ const resume = [];
 
 // ---------- Earthquakes ----------
 let liste = [];
-if (manuel && !manuel.startsWith("v")) {
+if (manuel && !manuel.startsWith("v") && !manuel.startsWith("hebdo")) {
   const q = await json(`https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/${manuel}.geojson`);
   liste = [{ id: manuel, mag: q.properties.mag, lieu: q.properties.place, temps: q.properties.time, reseaux: ["x", "instagram", "facebook", "reel"] }];
 } else if (!manuel) {
@@ -85,6 +87,21 @@ if (!manuel || manuel.startsWith("v")) try {
   }
   if (!manuel) { memoriser(volcans, etatV); ecrireJson(ETAT_V, etatV); }
 } catch (e) { if (manuel) throw e; console.log("Volcans : données indisponibles, on réessaie au prochain passage :", e.message); }
+
+// ---------- Weekly reel "This Week in Earthquakes" (Wednesday 12:00 PM New York time) ----------
+// By hand: node src/principal.mjs hebdo:2026-10-28 (the Wednesday of the week to build). At most 3 tries per week (voice credits).
+if (!manuel || manuel.startsWith("hebdo")) try {
+  const date = manuel ? manuel.split(":")[1] : hebdoDu(etat), essais = etat._hebdoEssais?.date === date ? etat._hebdoEssais.n : 0;
+  if (date && (manuel || essais < 3)) {
+    if (!manuel) etat._hebdoEssais = { date, n: essais + 1 };
+    console.log(`\n== Reel hebdo, semaine finissant le ${date} (essai ${essais + 1})`);
+    const d = await donneesHebdo(date), txt = textesHebdo(d), sortie = join(SORTIE, d.id);
+    const fichiers = await reelHebdo(d, txt.narration, sortie);
+    ecrireHebdo(d, txt, fichiers, sortie);
+    if (!manuel) etat._hebdo = date;
+    resume.push({ id: d.id, hebdo: true, reseaux: ["reel"], fichiers });
+  }
+} catch (e) { if (manuel) throw e; console.log("Reel hebdo : échec, on réessaie au prochain passage :", e.message); }
 
 fermer();
 if (!manuel) {

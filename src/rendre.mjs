@@ -71,3 +71,29 @@ export async function reel(d, ecran, narration, sortie) {
   rmSync(brut);
   return ["reel.mp4", "reel-cover-9x16.jpg"];
 }
+
+// Weekly reel: scenes follow the narration paragraphs (hook, classes, strongest, busiest, deepest and/or most felt, end)
+export async function reelHebdo(d, narration, sortie) {
+  const url = await preparer(), dossier = `evenements/${d.id}`;
+  mkdirSync(join(RACINE, "public", dossier), { recursive: true }); mkdirSync(sortie, { recursive: true });
+  // ESSAI_SANS_VOIX=1: local test without the ElevenLabs key, words timed at 2.6 per second, no voice track
+  const sansVoix = process.env.ESSAI_SANS_VOIX === "1";
+  const mots = sansVoix ? narration.split(/\s+/).filter(Boolean).map((w, j) => ({ word: w, start: j / 2.6, end: j / 2.6 + 0.35 }))
+    : await voix(narration, join(RACINE, "public", dossier, "voix.mp3"));
+  synchroniser(d.id);
+  const paras = narration.trim().split(/\n\s*\n/).map((p) => p.trim().split(/\s+/).length);
+  const debuts = []; let i = 0; for (const n of paras) { debuts.push(mots[i].start); i += n; }
+  const VO = 18, sec = (s) => (VO + s * 30 - 8) / 30, fin = Math.round(VO + mots.at(-1).end * 30) + 80;
+  const types = ["accroche", "classes", "fort", "actif", ...(d.mode === "deux" ? ["profond", "ressenti"] : [d.mode]), "fin"];
+  const scenes = types.map((type, j) => ({ type, de: j ? Math.max(sec(debuts[j]), j === 1 ? 2.8 : 0) : 0 }));
+  scenes.forEach((s, j) => { s.a = j < scenes.length - 1 ? scenes[j + 1].de : fin / 30; });
+  const parle = []; for (const m of mots) { const a = Math.round(VO + m.start * 30), b = Math.round(VO + m.end * 30); if (parle.length && a - parle.at(-1)[1] < 11) parle.at(-1)[1] = b; else parle.push([a, b]); }
+  const inputProps = { d, scenes, couverture: scenes[0].a - 0.2, audio: { voix: sansVoix ? null : `${dossier}/voix.mp3`, voixDebut: VO, parle, fin, musique: "musique/calme-1.mp3" } };
+  const composition = await selectComposition({ serveUrl: url, id: "hebdo-seismes", inputProps });
+  await renderStill({ composition, serveUrl: url, frame: 0, inputProps, output: join(sortie, "reel-cover-9x16.jpg"), imageFormat: "jpeg", jpegQuality: 92 });
+  const brut = join(sortie, "_brut.mp4");
+  await renderMedia({ composition, serveUrl: url, codec: "h264", crf: 18, pixelFormat: "yuv420p", inputProps, outputLocation: brut });
+  execFileSync("npx", ["remotion", "ffmpeg", "-y", "-loglevel", "error", "-i", brut, "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", join(sortie, "reel.mp4")], { shell: process.platform === "win32", cwd: RACINE });
+  rmSync(brut);
+  return ["reel.mp4", "reel-cover-9x16.jpg"];
+}
