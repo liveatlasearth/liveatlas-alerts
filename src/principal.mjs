@@ -59,7 +59,8 @@ for (const e of liste.slice(0, 4)) {
 }
 
 // ---------- Volcanoes ----------
-if (!manuel || manuel.startsWith("v")) {
+// A failure here (site data briefly unavailable) must never block the earthquake alerts: logged, retried at the next run
+if (!manuel || manuel.startsWith("v")) try {
   const volcans = await lireVolcans();
   let listeV;
   if (manuel) {
@@ -80,7 +81,7 @@ if (!manuel || manuel.startsWith("v")) {
     resume.push({ id: e.id, nom: d.nom, cas: e.cas, reseaux: e.reseaux, fichiers });
   }
   if (!manuel) { memoriser(volcans, etatV); ecrireJson(ETAT_V, etatV); }
-}
+} catch (e) { if (manuel) throw e; console.log("Volcans : données indisponibles, on réessaie au prochain passage :", e.message); }
 
 fermer();
 if (!manuel) {
