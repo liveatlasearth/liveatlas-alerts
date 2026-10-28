@@ -9,7 +9,7 @@ import { geoAutour } from "./donnees.mjs";
 const SITE = "https://www.liveatlas.earth", HASHTAGS = lireJson("config", "hashtags.json");
 const COULEURS = ["GREEN", "YELLOW", "ORANGE", "RED"];
 let PAYS_NE = null;
-const paysEn = (fr) => { if (!fr) return null; const f = (PAYS_NE ??= lireJson("donnees", "ne_pays_110m.geojson").features).find((x) => x.properties.NAME_FR === fr); return f ? ({ "United States of America": "United States", "Dem. Rep. Congo": "DR Congo" }[f.properties.NAME] ?? f.properties.NAME) : null; };
+const paysEn = (fr) => { if (!fr) return null; const f = (PAYS_NE ??= lireJson("donnees", "ne_pays_50m.geojson").features).find((x) => x.properties.NAME_FR === fr); return f ? ({ "United States of America": "United States", "Dem. Rep. Congo": "DR Congo", "Heard I. and McDonald Is.": "Heard Island" }[f.properties.NAME] ?? f.properties.NAME) : null; };
 
 // Alert levels of one volcano as comparable numbers
 export const niveaux = (v) => {
@@ -43,12 +43,22 @@ export function detecterVolcans(volcans, etat, maintenant = Date.now()) {
 }
 export const memoriser = (volcans, etat) => { for (const v of volcans) etat[v.id] = { ...etat[v.id], eruption: v.statut === "eruption", ...niveaux(v) }; };
 
+// State, province or island group of a volcano ("Hawaii", "Kagoshima", "Sicily", "Central Java"), from OpenStreetMap (Nominatim
+// reverse geocoding, English names). None at sea (Home Reef, Ahyi) or if the service does not answer: the post goes out without it.
+async function region(lat, lon, pays) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=5&accept-language=en`, { headers: { "user-agent": "liveatlas-alerts (+https://www.liveatlas.earth)" }, signal: AbortSignal.timeout(10000) });
+    const a = (await r.json()).address ?? {}, nom = (a.state ?? a.province ?? a.region ?? a.archipelago)?.replace(/ (Prefecture|Krai|Oblast|Province|Region|State|Governorate)$/, "");
+    return nom && nom !== pays && nom !== a.country ? nom : null;
+  } catch { return null; }
+}
+
 // Everything needed for the images and captions of one volcano alert
 export async function donneesVolcan(v, cas, manuel = false) {
   const index = await json(`${SITE}/donnees/recherche.json`), entree = (Array.isArray(index) ? index : Object.values(index)).find((x) => Array.isArray(x) && x[4] === "v" && x[2] === `/fr/volcans/${v.slug}/`);
   const nom = entree?.[1] ?? v.nom, lien = entree ? SITE + entree[3] : COMPTES.volcans.lien_volcans, pays = paysEn(v.pays);
   const n = niveaux(v), jma = v.alertes?.find((a) => a.organisme === "JMA"), usgs = v.alertes?.find((a) => a.organisme === "USGS"), geonet = v.alertes?.find((a) => a.organisme === "GeoNet");
-  const d = { id: `v${v.id}`, gvp: v.id, manuel, nom, pays, lon: v.lon, lat: v.lat, depuis: v.depuis, statut: v.statut, cas, lien, n, jma, usgs, geonet, geo: geoAutour(v.lon, v.lat) };
+  const d = { id: `v${v.id}`, gvp: v.id, manuel, nom, pays, region: await region(v.lat, v.lon, pays), lon: v.lon, lat: v.lat, depuis: v.depuis, statut: v.statut, cas, lien, n, jma, usgs, geonet, geo: geoAutour(v.lon, v.lat) };
   ecrireJson(join(RACINE, "public", "evenements", d.id, "donnees.json"), d, false);
   return d;
 }
@@ -81,12 +91,13 @@ export function textesVolcan(d) {
   // Hashtags (config/hashtags.json): local word, volcano, country in English and in its own language, #Volcano, then a varied tag
   const H = HASHTAGS.volcans, [langue = "en", paysLocal] = (d.pays && HASHTAGS.pays[d.pays === "United States" ? "United States" : d.pays]) || [];
   const local = HASHTAGS.langues[langue]?.volcan?.[0] ?? HASHTAGS.langues.en.volcan[0];
-  const lieux = [tag(court), d.pays ? tag(d.pays) : null, paysLocal ? tagLocal(paysLocal) : null].filter(Boolean);
+  const lieux = [tag(court), d.region ? tag(d.region) : null, d.pays ? tag(d.pays) : null, paysLocal ? tagLocal(paysLocal) : null].filter(Boolean);
+  const ou = [d.region, d.pays].filter(Boolean).join(", ");
   const v1 = variante(d.id, "v1", H.sismiques), v2 = H.sismiques[(H.sismiques.indexOf(v1) + 1) % H.sismiques.length], large = variante(d.id, "lg", H.larges);
   const u = (l) => [...new Set(l)].join(" ");
   const lignes = [
     `🌋 Volcano: ${court}`,
-    `📍 Location: ${d.pays ? d.pays + " " : ""}(${coords})`,
+    `📍 Location: ${ou ? ou + " " : ""}(${coords})`,
     ...(alerte ? [`⚠️ Alert: ${alerte}`] : []),
     ...(annee ? [`📅 ${d.cas === "eruption" ? "Eruption Began" : "Erupting Since"}: ${d.cas === "eruption" ? new Date(d.depuis + "T00:00:00Z").toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }) : annee}`] : []),
   ];
@@ -94,10 +105,10 @@ export function textesVolcan(d) {
   const legendes = {
     x: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${source}\n\n${u([local, ...lieux, "#Volcano", v1])}`,
     instagram: `${titre}\n\n${lignes.join("\n")}\n\n🗺️ Live Map, Link in Bio${source}\n\n${u([local, ...lieux, "#Volcano", v1, v2, large])}`,
-    facebook: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${source}\n\n${u([local, ...lieux.slice(0, 2), "#Volcano"])}`,
+    facebook: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${source}\n\n${u([local, ...lieux.slice(0, d.region ? 3 : 2), "#Volcano"])}`,
   };
   const ecran = {
-    type: "volcan", couleur, pastille, nom: court, pays: d.pays, coords, date: new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }),
+    type: "volcan", couleur, pastille, nom: court, pays: ou || null, coords, date: new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }),
     ligne2: annee ? (d.cas === "eruption" ? `Eruption Began ${new Date(d.depuis + "T00:00:00Z").toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}` : `Erupting Since ${annee}`) : d.statut === "eruption" ? "Erupting Now" : "Unrest",
     faits: [
       ...(d.jma ? [d.n.jma ? ["alert", `${d.n.jma} of 5`, "JMA Alert Level"] : ["alert", d.jma.niveau_en, "JMA Warning"]] : []),
