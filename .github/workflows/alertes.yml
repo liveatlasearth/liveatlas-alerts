@@ -1,0 +1,61 @@
+# Every 10 minutes: detect significant earthquakes, build the images, reel and captions, open one issue per alert (draft mode).
+name: Alerts
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      id:
+        description: "USGS event id to build by hand (optional, e.g. us6000u43g)"
+        required: false
+
+concurrency:
+  group: alerts
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Tools
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - run: npm ci
+      - name: Detect and build
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: node src/principal.mjs ${{ inputs.id }}
+      - name: Keep the files
+        if: hashFiles('sortie/*/issue.md') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: alerts-${{ github.run_id }}
+          path: sortie/
+          retention-days: 30
+      - name: One issue per alert
+        if: hashFiles('sortie/*/issue.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for d in sortie/*/; do
+            [ -f "$d/issue.md" ] || continue
+            printf '\n---\nFiles (images, reel): %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$d/issue.md"
+            gh issue create --title "$(cat "$d/titre.txt")" --body-file "$d/issue.md"
+          done
+      - name: Remember what was posted
+        if: inputs.id == ''
+        run: |
+          git config user.name "liveatlas-alerts"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add etat/publies.json
+          git diff --cached --quiet || (git commit -m "State $(date -u +%Y-%m-%dT%H:%MZ)" && git push)

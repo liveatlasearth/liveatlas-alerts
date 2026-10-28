@@ -1,0 +1,14 @@
+{
+ "seismes": {
+  "nom": "Live Atlas | Real-Time Earthquake Alerts",
+  "utilisateur": "LiveAtlasQuakes",
+  "site": "https://www.liveatlas.earth",
+  "lien_seisme": "https://www.liveatlas.earth/?seisme={id}&lon={lon}&lat={lat}",
+  "lien_tsunami": "https://www.liveatlas.earth/tsunami-warnings/"
+ },
+ "volcans": {
+  "nom": "Live Atlas | Volcano Eruptions & Alerts",
+  "utilisateur": "LiveAtlasErupts",
+  "lien_volcans": "https://www.liveatlas.earth/volcanoes-erupting-now/"
+ }
+}

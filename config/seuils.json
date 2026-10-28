@@ -1,0 +1,265 @@
+{
+  "_lisez_moi": "Alert thresholds. Copied from the private Live Atlas project (social/alertes/seuils.json), without e-mail addresses. Change them there first.",
+  "comptes": {
+    "seismes": {
+      "nom": "Live Atlas | Real-Time Earthquake Alerts",
+      "utilisateur": "LiveAtlasQuakes",
+      "reseaux": [
+        "x",
+        "instagram",
+        "facebook"
+      ],
+      "contenu": "séismes et alertes tsunami"
+    },
+    "volcans": {
+      "nom": "Live Atlas | Volcano Eruptions & Alerts",
+      "utilisateur": "LiveAtlasErupts",
+      "reseaux": [
+        "x",
+        "instagram",
+        "facebook"
+      ],
+      "contenu": "éruptions, niveaux d'alerte, rubriques régulières"
+    },
+    "_principal": "Le compte principal Live Atlas ne reçoit aucune alerte automatique (décision du 27/10/2026)."
+  },
+  "rythme_minimum": {
+    "posts_par_jour": 1,
+    "jours_par_semaine": 5,
+    "vise": 2
+  },
+  "seismes": {
+    "source": "USGS, flux GeoJSON en temps réel (earthquake.usgs.gov/earthquakes/feed/v1.0/summary/)",
+    "zones_focus": [
+      {
+        "nom": "États-Unis (48 États, Alaska, Hawaï, Porto Rico)",
+        "magnitude_min": 4,
+        "reconnaissance": "lieu USGS se terminant par un État américain, « Alaska », « Hawaii » ou « Puerto Rico »"
+      },
+      {
+        "nom": "Japon",
+        "magnitude_min": 4.5,
+        "reconnaissance": "lieu USGS se terminant par « Japan »"
+      },
+      {
+        "nom": "Mexique",
+        "magnitude_min": 4.5,
+        "reconnaissance": "lieu USGS se terminant par « Mexico »"
+      },
+      {
+        "nom": "Philippines",
+        "magnitude_min": 4.5,
+        "reconnaissance": "lieu USGS se terminant par « Philippines »"
+      },
+      {
+        "nom": "Taïwan",
+        "magnitude_min": 4.5,
+        "reconnaissance": "lieu USGS se terminant par « Taiwan »"
+      }
+    ],
+    "reste_du_monde_magnitude_min": 5,
+    "japon_jma": {
+      "source": "Agence météorologique du Japon, liste des séismes (www.jma.go.jp/bosai/quake/data/list.json), intensité « shindo » mesurée au sol, noms de lieux en anglais (en_anm)",
+      "shindo_x": "4",
+      "shindo_instagram_facebook": "5-",
+      "_pourquoi": "Au Japon, c'est l'intensité JMA (shindo) que les gens et les médias citent. Un M4 peu profond peut secouer fort : on le publie même sous M4,5."
+    },
+    "par_reseau": {
+      "x": {
+        "regle": "tout ce qui passe zones_focus, reste_du_monde ou japon_jma.shindo_x"
+      },
+      "instagram_facebook": {
+        "magnitude_min": 5.5,
+        "plus": [
+          "M4,5 et plus aux États-Unis",
+          "M5 et plus au Japon",
+          "shindo 5- et plus",
+          "alertes tsunami"
+        ]
+      }
+    },
+    "reel": {
+      "magnitude_min": 6.5,
+      "plus": [
+        "alerte PAGER orange ou rouge"
+      ],
+      "duree_s": 30,
+      "image": "vue satellite NASA GIBS du lendemain (MODIS), repli Blue Marble",
+      "conseil_final": {
+        "alerte_tsunami": "suivre les consignes officielles (NOAA)",
+        "cotier_peu_profond_M7": "monter en hauteur si secousse forte ou longue près de la côte (NOAA)",
+        "autres": "drop, cover, and hold on pendant les répliques (Ready.gov, USGS, Great ShakeOut)"
+      }
+    },
+    "recap_quotidien": {
+      "actif": true,
+      "heure_utc": "23:30",
+      "reseaux": [
+        "x",
+        "instagram",
+        "facebook"
+      ],
+      "contenu": "carrousel des séismes du jour (nombre, plus fort, carte)"
+    },
+    "on_this_day": {
+      "actif": true,
+      "si": "aucun autre post ce jour-là à 18 h UTC",
+      "source": "donnees/prepare/seismes-pages.json (1 746 grands séismes, 364 jours couverts)",
+      "lien": "/earthquakes/<slug>/"
+    },
+    "recoupement": {
+      "sources": [
+        "EMSC (seismicportal.eu)",
+        "GFZ GEOFON (geofon.gfz.de)",
+        "JMA pour le Japon",
+        "GeoNet pour la Nouvelle-Zélande"
+      ],
+      "regle": "On publie avec l'identifiant et la magnitude de l'USGS (lien direct vers la carte). Si une autre agence donne une magnitude différente de 0,5 ou plus, on attend 10 minutes de plus et on reprend les valeurs à jour. Si l'USGS n'a toujours rien après 20 minutes alors que l'EMSC et le GFZ ont un M6 et plus, on publie avec la source EMSC."
+    },
+    "attente_avant_post_minutes": 10,
+    "_attente": "L'USGS révise souvent la magnitude dans les premières minutes : on attend 10 min et on reprend la valeur à jour avant de publier."
+  },
+  "tsunamis": {
+    "compte": "seismes",
+    "source": "Centres d'alerte NOAA PTWC et NTWC (flux Atom tsunami.gov) + API d'alertes du National Weather Service + JMA",
+    "declencheur": [
+      "Tsunami Warning",
+      "Tsunami Advisory",
+      "Tsunami Watch",
+      "Tsunami Threat (PTWC, international)"
+    ],
+    "jamais": [
+      "Tsunami Information Statement",
+      "JMA 津波予報 (prévision de légère variation du niveau de la mer)"
+    ],
+    "japon_jma": {
+      "source": "Agence météorologique du Japon, liste des bulletins tsunami (www.jma.go.jp/bosai/tsunami/data/list.json)",
+      "declencheur": [
+        "大津波警報 Major Tsunami Warning",
+        "津波警報 Tsunami Warning",
+        "津波注意報 Tsunami Advisory"
+      ]
+    },
+    "reseaux": [
+      "x",
+      "instagram",
+      "facebook"
+    ],
+    "reel": {
+      "si_seisme_magnitude_min": 6.5
+    },
+    "attente_avant_post_minutes": 0
+  },
+  "volcans": {
+    "compte": "volcans",
+    "source": "Smithsonian GVP (rapport hebdomadaire) + niveaux d'alerte USGS, JMA, GeoNet + avis de cendres VAAC (déjà dans /donnees/evenements.json)",
+    "declencheurs": [
+      {
+        "cas": "nouvelle éruption d'un volcan qui n'était pas en éruption",
+        "reseaux": [
+          "x",
+          "instagram",
+          "facebook"
+        ]
+      },
+      {
+        "cas": "hausse du niveau d'alerte : USGS orange ou rouge, JMA niveau 3 et plus, GeoNet niveau 3 et plus",
+        "reseaux": [
+          "x",
+          "instagram",
+          "facebook"
+        ]
+      }
+    ],
+    "jamais": [
+      "avis de cendres VAAC seul (Sakurajima en émet presque chaque jour)"
+    ],
+    "reel": {
+      "cas": [
+        "début d'éruption (nouvelle éruption), dès qu'une image existe",
+        "USGS rouge",
+        "JMA niveau 4 et plus",
+        "GeoNet niveau 4 et plus"
+      ],
+      "volcano_of_the_week": {
+        "jour": "vendredi",
+        "si": "aucun reel volcan dans la semaine",
+        "source": "rapport hebdomadaire Smithsonian/USGS"
+      },
+      "rythme": "1 à 2 par semaine",
+      "duree_s": 30,
+      "images": [
+        "USGS (domaine public)",
+        "Sentinel-2 Copernicus, Earth Search AWS (crédit Contains modified Copernicus Sentinel data <année>)",
+        "NASA GIBS MODIS/VIIRS (crédit NASA GIBS)",
+        "GOES NOAA (domaine public)"
+      ]
+    },
+    "rubriques": [
+      {
+        "jour": "lundi",
+        "nom": "Erupting Now",
+        "lien": "/volcanoes-erupting-now/"
+      },
+      {
+        "jour": "mardi",
+        "nom": "Volcano Spotlight",
+        "lien": "/volcanoes/<slug>/"
+      },
+      {
+        "jour": "mercredi",
+        "nom": "On This Day",
+        "source": "donnees/prepare/eruptions-pages.json (753 éruptions, 288 jours couverts)",
+        "repli": "un volcan américain à surveiller",
+        "lien": "/eruptions/<slug>/"
+      },
+      {
+        "jour": "jeudi",
+        "nom": "Alert Levels",
+        "lien": "/volcanoes-erupting-now/"
+      },
+      {
+        "jour": "vendredi",
+        "nom": "Volcanoes This Week",
+        "source": "rapport hebdomadaire Smithsonian/USGS, dès sa parution",
+        "lien": "/volcanoes-erupting-now/"
+      }
+    ],
+    "heure_rubriques_utc": "15:00"
+  },
+  "cyclones": {
+    "_etat": "Plus tard (compte à décider). Idées : changements de catégorie, tempêtes à surveiller, trajectoire passée puis prévue (cône NHC, prévisions JTWC, pas encore dans les données du site).",
+    "declencheurs": [
+      {
+        "cas": "tempête nommée (34 nœuds, 39 mph)"
+      },
+      {
+        "cas": "devient ouragan ou typhon (64 nœuds, 74 mph)"
+      },
+      {
+        "cas": "devient majeur, catégorie 3 et plus (96 nœuds, 111 mph)"
+      }
+    ],
+    "reel": {
+      "categorie_min": 4,
+      "plus": [
+        "alerte GDACS rouge"
+      ]
+    }
+  },
+  "garde_fous": {
+    "max_posts_par_jour": {
+      "x_seismes": 30,
+      "instagram_seismes": 8,
+      "facebook_seismes": 8,
+      "x_volcans": 4,
+      "instagram_volcans": 4,
+      "facebook_volcans": 4
+    },
+    "un_seul_post_par_evenement_et_par_reseau": true,
+    "mises_a_jour": "Une hausse (niveau d'alerte, magnitude révisée au-dessus d'un seuil) peut créer un nouveau post ; une baisse jamais.",
+    "mention_obligatoire": "Not an official warning. Follow your local authorities.",
+    "lien": "toujours vers liveatlas.earth, jamais vers Kaggle ni Hugging Face",
+    "utm": "utm_source=x|instagram|facebook&utm_medium=social&utm_campaign=alerte-<type>"
+  }
+}

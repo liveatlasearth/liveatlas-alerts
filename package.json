@@ -1,0 +1,23 @@
+{
+  "name": "liveatlas-alerts",
+  "private": true,
+  "type": "module",
+  "description": "Live Atlas alert engine: detects significant earthquakes from official open data and builds the images, reels and captions for @LiveAtlasQuakes.",
+  "scripts": {
+    "alertes": "node src/principal.mjs",
+    "studio": "remotion studio remotion/index.jsx"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.535",
+    "@remotion/cli": "4.0.535",
+    "@remotion/renderer": "4.0.535",
+    "d3-geo": "3.1.1",
+    "geo-tz": "8.1.10",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.535"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
+}

@@ -1,0 +1,4 @@
+node_modules/
+sortie/
+public/evenements/
+.env
