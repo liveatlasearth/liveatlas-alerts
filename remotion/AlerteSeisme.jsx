@@ -4,7 +4,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Audio, Freeze, Img, Sequence, continueRender, delayRender, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { geoDistance, geoGraticule10, geoOrthographic, geoPath } from "d3-geo";
-import { F, Logo, usePolices } from "./commun.jsx";
+import { F, usePolices } from "./commun.jsx";
 
 const CL = { extrapolateLeft: "clamp", extrapolateRight: "clamp" };
 const lisse = (u) => u * u * (3 - 2 * u);
@@ -129,7 +129,7 @@ const Hud = ({ d, S, date }) => {
       {coin({ left: 34, top: 34, borderRight: 0, borderBottom: 0 })}{coin({ right: 34, top: 34, borderLeft: 0, borderBottom: 0 })}
       {coin({ left: 34, bottom: 34, borderRight: 0, borderTop: 0 })}{coin({ right: 34, bottom: 34, borderLeft: 0, borderTop: 0 })}
       <div style={{ position: "absolute", left: 76, top: 70, display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, font: `700 40px ${F.titre}`, color: "#fff" }}><Logo taille={48} />Live Atlas</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, font: `700 40px ${F.titre}`, color: "#fff" }}><Img src={staticFile("pastilles/seismes.svg")} style={{ width: 52, height: 52, borderRadius: "50%" }} />Live Atlas</div>
         <div style={{ font: `500 28px ${F.mono}`, letterSpacing: ".1em", color: "#dfe7ec", fontVariantNumeric: "tabular-nums" }}>{coord}</div>
       </div>
       <div style={{ position: "absolute", right: 76, top: 80, display: "flex", alignItems: "center", gap: 12, font: `500 28px ${F.mono}`, letterSpacing: ".12em", color: "#dfe7ec", textTransform: "uppercase" }}>
