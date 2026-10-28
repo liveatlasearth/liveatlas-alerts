@@ -27,7 +27,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
+      # Always the latest main (not the commit of the trigger): the memory of what was posted must be up to date, or alerts would be posted twice
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
@@ -84,4 +87,6 @@ jobs:
           git config user.name "liveatlas-alerts"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add etat/publies.json etat/volcans.json
-          git diff --cached --quiet || (git commit -m "State $(date -u +%Y-%m-%dT%H:%MZ)" && git push)
+          git diff --cached --quiet && exit 0
+          git commit -m "State $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0; sleep 5; done; exit 1
