@@ -12,6 +12,8 @@ if (!jetonBrut) { console.log("Pas de jeton Meta : publication Instagram et Face
 // One Page per account: earthquakes (and tsunamis) on the "Earthquake" Page, volcanoes on the "Volcano" Page
 const pages = {};
 const compte = async (type) => (pages[type] ??= await comptes(jetonBrut, type === "volcan" ? "Volcano" : "Earthquake").then((c) => { console.log(`Page ${c.nomPage} (${c.page}), Instagram ${c.ig ?? "non relié"}`); return c; }));
+// Check mode (manual run with networks "verifier"): reads both Pages and their Instagram accounts, publishes nothing
+if (filtre.includes("verifier")) { for (const t of ["seisme", "volcan"]) { const c = await compte(t); console.log(t, "→", c.nomPage, "Instagram", c.ig ? "relié" : "NON RELIÉ"); } process.exit(0); }
 const SORTIE = join(RACINE, "sortie");
 for (const id of readdirSync(SORTIE)) {
   const dir = join(SORTIE, id); if (!existsSync(join(dir, "legendes.json"))) continue;

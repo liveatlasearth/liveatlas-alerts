@@ -54,7 +54,7 @@ jobs:
           done
       - name: Publish on Instagram and Facebook
         continue-on-error: true
-        if: hashFiles('sortie/*/issue.md') != '' && (inputs.id == '' || inputs.reseaux != '')
+        if: inputs.reseaux == 'verifier' || (hashFiles('sortie/*/issue.md') != '' && (inputs.id == '' || inputs.reseaux != ''))
         env:
           META_PAGE_TOKEN_SEISMES: ${{ secrets.META_PAGE_TOKEN_SEISMES }}
           RESEAUX: ${{ inputs.reseaux }}
