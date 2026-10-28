@@ -1,1 +1,327 @@
-{}
+{
+ "211040": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "222120": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "223020": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "223030": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "234010": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "241040": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 3
+ },
+ "241100": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 1
+ },
+ "243060": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "243080": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "251020": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "252010": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "255020": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "257030": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "257100": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "261140": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "263250": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "263300": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "264230": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "268010": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "268030": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "272020": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "273030": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "273070": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "282030": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 2,
+  "geonet": 0
+ },
+ "282060": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 2,
+  "geonet": 0
+ },
+ "282080": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 3,
+  "geonet": 0
+ },
+ "282090": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 2,
+  "geonet": 0
+ },
+ "282110": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 2,
+  "geonet": 0
+ },
+ "284080": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 26,
+  "geonet": 0
+ },
+ "284096": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 12,
+  "geonet": 0
+ },
+ "284120": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 12,
+  "geonet": 0
+ },
+ "284130": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 26,
+  "geonet": 0
+ },
+ "284141": {
+  "eruption": false,
+  "usgs": 2,
+  "jma": 0,
+  "geonet": 0
+ },
+ "285020": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 2,
+  "geonet": 0
+ },
+ "285050": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 2,
+  "geonet": 0
+ },
+ "285070": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 2,
+  "geonet": 0
+ },
+ "290360": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "300190": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "300270": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "311120": {
+  "eruption": true,
+  "usgs": 3,
+  "jma": 0,
+  "geonet": 0
+ },
+ "311360": {
+  "eruption": false,
+  "usgs": 2,
+  "jma": 0,
+  "geonet": 0
+ },
+ "332010": {
+  "eruption": true,
+  "usgs": 2,
+  "jma": 0,
+  "geonet": 0
+ },
+ "341090": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "342030": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "342090": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "344100": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "345040": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "351020": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "351060": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "352010": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "352090": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "354006": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "390020": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "390090": {
+  "eruption": true,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0
+ },
+ "_init": "2026-10-28T06:11:27.274Z"
+}
