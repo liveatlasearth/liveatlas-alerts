@@ -50,6 +50,7 @@ jobs:
             gh release create "alert-$id-$GITHUB_RUN_ID" $(ls "$d"*.jpg "$d"*.mp4 2>/dev/null) --title "$(cat "$d/titre.txt")" --notes "Images and reel of this alert. Captions: see the issue."
           done
       - name: Publish on Instagram and Facebook
+        continue-on-error: true
         if: hashFiles('sortie/*/issue.md') != '' && (inputs.id == '' || inputs.reseaux != '')
         env:
           META_PAGE_TOKEN_SEISMES: ${{ secrets.META_PAGE_TOKEN_SEISMES }}
