@@ -7,9 +7,9 @@ import { join } from "node:path";
 import { RACINE } from "./commun.mjs";
 import { carrouselInstagram, comptes, photosFacebook, reelFacebook, reelInstagram } from "./meta.mjs";
 
-const jeton = process.env.META_PAGE_TOKEN_SEISMES, base = process.argv[2], filtre = (process.env.RESEAUX || "").split(",").filter(Boolean);
-if (!jeton) { console.log("Pas de jeton Meta : publication Instagram et Facebook sautée (mode brouillon)."); process.exit(0); }
-const c = await comptes(jeton);
+const jetonBrut = process.env.META_PAGE_TOKEN_SEISMES, base = process.argv[2], filtre = (process.env.RESEAUX || "").split(",").filter(Boolean);
+if (!jetonBrut) { console.log("Pas de jeton Meta : publication Instagram et Facebook sautée (mode brouillon)."); process.exit(0); }
+const c = await comptes(jetonBrut), jeton = c.jeton;
 console.log(`Page ${c.nomPage} (${c.page}), Instagram ${c.ig ?? "non relié"}`);
 const SORTIE = join(RACINE, "sortie");
 for (const id of readdirSync(SORTIE)) {

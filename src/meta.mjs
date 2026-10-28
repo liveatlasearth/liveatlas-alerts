@@ -13,9 +13,18 @@ async function graph(chemin, params = {}, methode = "POST", jeton) {
 }
 const pause = (ms) => new Promise((ok) => setTimeout(ok, ms));
 
-export async function comptes(jeton) {
+// Accepts a Page token or a user token: with a user token, the Page whose name matches (default "Earthquake") is picked
+// in /me/accounts and its own Page token is used for publishing.
+export async function comptes(jeton, nom = process.env.META_PAGE_NOM || "Earthquake") {
+  let pages = null;
+  try { pages = (await graph("/me/accounts", { fields: "id,name,access_token,instagram_business_account" }, "GET", jeton)).data; } catch {}
+  if (pages?.length) {
+    const p = pages.find((x) => x.name.toLowerCase().includes(nom.toLowerCase()));
+    if (!p) throw new Error(`Aucune page « ${nom} » parmi : ${pages.map((x) => x.name).join(", ")}`);
+    return { page: p.id, nomPage: p.name, ig: p.instagram_business_account?.id ?? null, jeton: p.access_token };
+  }
   const page = await graph("/me", { fields: "id,name,instagram_business_account" }, "GET", jeton);
-  return { page: page.id, nomPage: page.name, ig: page.instagram_business_account?.id ?? null };
+  return { page: page.id, nomPage: page.name, ig: page.instagram_business_account?.id ?? null, jeton };
 }
 
 // Instagram: wait until the container is ready, then publish; returns the permalink
