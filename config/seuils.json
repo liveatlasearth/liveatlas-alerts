@@ -116,8 +116,8 @@
       ],
       "regle": "On publie avec l'identifiant et la magnitude de l'USGS (lien direct vers la carte). Si une autre agence donne une magnitude différente de 0,5 ou plus, on attend 10 minutes de plus et on reprend les valeurs à jour. Si l'USGS n'a toujours rien après 20 minutes alors que l'EMSC et le GFZ ont un M6 et plus, on publie avec la source EMSC."
     },
-    "attente_avant_post_minutes": 10,
-    "_attente": "L'USGS révise souvent la magnitude dans les premières minutes : on attend 10 min et on reprend la valeur à jour avant de publier."
+    "attente_avant_post_minutes": 5,
+    "_attente": "L'USGS révise parfois la magnitude dans les premières minutes : on attend 5 min (10 jusqu'au 28/10/2026). Pour les séismes hors États-Unis, l'USGS publie de toute façon souvent 10 à 20 min après."
   },
   "tsunamis": {
     "compte": "seismes",
