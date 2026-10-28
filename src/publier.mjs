@@ -17,6 +17,7 @@ export function brouillon(e, d, txt, fichiers, sortie) {
     ...(e.reseaux.includes("reel") ? ["### Narration", "```", txt.narration.trim(), "```", ""] : []),
   ];
   writeFileSync(join(sortie, "issue.md"), lignes.join("\n"));
+  writeFileSync(join(sortie, "reseaux.txt"), e.reseaux.join(","));
   writeFileSync(join(sortie, "titre.txt"), `${txt.legendes.x.split("\n")[0]} (${e.reseaux.join(", ")})`);
   return Object.fromEntries(e.reseaux.map((r) => [r, "brouillon"]));
 }
