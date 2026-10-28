@@ -12,7 +12,7 @@ import { donnees } from "./donnees.mjs";
 import { textes } from "./textes.mjs";
 import { fermer, images, imagesVolcan, reel } from "./rendre.mjs";
 import { brouillon } from "./publier.mjs";
-import { detecterVolcans, donneesVolcan, lireVolcans, memoriser, textesVolcan } from "./volcans.mjs";
+import { detecterVolcans, donneesVolcan, lireVolcans, memoriser, niveaux, textesVolcan } from "./volcans.mjs";
 
 const ETAT = join(RACINE, "etat", "publies.json"), ETAT_V = join(RACINE, "etat", "volcans.json"), SORTIE = join(RACINE, "sortie");
 const lire = (f) => { try { return JSON.parse(readFileSync(f, "utf8")); } catch { return {}; } };
@@ -66,7 +66,10 @@ if (!manuel || manuel.startsWith("v")) try {
   if (manuel) {
     const v = volcans.find((x) => `v${x.id}` === manuel);
     if (!v) throw new Error(`Volcan ${manuel} absent des données du site (seuls les volcans en éruption ou en alerte y sont)`);
-    listeV = [{ id: manuel, volcan: v, cas: v.statut === "eruption" && v.depuis && maintenant - Date.parse(v.depuis) < 60 * 86400e3 ? "eruption" : v.alertes?.find((a) => a.organisme === "JMA") ? "jma" : v.alertes?.find((a) => a.organisme === "USGS") ? "usgs" : "geonet", reseaux: ["x", "instagram", "facebook"] }];
+    // By hand: the current state of the volcano, stated as it is ("Is Erupting", "at Alert Level 3"), never an invented raise
+    const n = niveaux(v), cas = v.statut === "eruption" && v.depuis && maintenant - Date.parse(v.depuis) < 60 * 86400e3 ? "eruption"
+      : n.jma >= 3 ? "jma" : n.usgs >= 3 ? "usgs" : n.geonet >= 3 ? "geonet" : "etat";
+    listeV = [{ id: manuel, volcan: v, cas, reseaux: ["x", "instagram", "facebook"] }];
   } else {
     if (!etatV._init) { memoriser(volcans, etatV); etatV._init = new Date().toISOString(); console.log("Volcans : initialisation, rien publié"); }
     listeV = detecterVolcans(volcans, etatV, maintenant);

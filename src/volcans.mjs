@@ -16,7 +16,9 @@ export const niveaux = (v) => {
   const n = { usgs: 0, jma: 0, geonet: 0 };
   for (const a of v.alertes ?? []) {
     if (a.organisme === "USGS") n.usgs = COULEURS.indexOf(a.couleur) + 1;
-    if (a.organisme === "JMA" && a.code) n.jma = a.code - 10;
+    // JMA: codes 11 to 15 are the numbered levels 1 to 5. Other codes (22 "Danger Around the Crater", 36 "Marine Warning…")
+    // are keyword warnings for volcanoes without levels: shown with their own words, never treated as a level
+    if (a.organisme === "JMA" && a.code >= 11 && a.code <= 15) n.jma = a.code - 10;
     if (a.organisme === "GeoNet") n.geonet = +a.niveau || 0;
   }
   return n;
@@ -59,15 +61,21 @@ export function textesVolcan(d) {
   // Alert line and pill, from the agency that raised it
   let pastille, alerte, emoji, couleur, sourceJma = false;
   if (d.cas === "eruption") { pastille = "New Eruption"; emoji = "🌋"; couleur = "#FF6A4D"; }
-  if (d.jma && (d.cas === "jma" || (d.cas === "eruption" && d.n.jma))) { const m = d.jma.niveau_en?.match(/\(([^)]+)\)/); alerte = `Level ${d.n.jma} of 5${m ? ` (${m[1]})` : ""}`; sourceJma = true; }
-  if (d.usgs && (d.cas === "usgs" || (d.cas === "eruption" && d.n.usgs))) alerte = `${d.usgs.couleur[0] + d.usgs.couleur.slice(1).toLowerCase()} (${d.usgs.niveau[0] + d.usgs.niveau.slice(1).toLowerCase()})`;
-  if (d.geonet && (d.cas === "geonet" || (d.cas === "eruption" && d.n.geonet))) alerte = `Level ${d.n.geonet}${d.geonet.texte ? ` (${d.geonet.texte.replace(/\.$/, "")})` : ""}`;
-  if (d.cas !== "eruption") {
-    const niv = d.cas === "usgs" ? d.n.usgs + 1 : d.cas === "jma" ? d.n.jma : d.n.geonet; // 3 orange, 4 red, 5 purple
+  if (d.jma && (d.cas === "jma" || d.cas === "etat" || (d.cas === "eruption" && d.n.jma))) { const m = d.jma.niveau_en?.match(/\(([^)]+)\)/); alerte = d.n.jma ? `Level ${d.n.jma} of 5${m ? ` (${m[1]})` : ""}` : d.jma.niveau_en; sourceJma = true; }
+  if (d.usgs && (d.cas === "usgs" || d.cas === "etat" || (d.cas === "eruption" && d.n.usgs))) alerte = `${d.usgs.couleur[0] + d.usgs.couleur.slice(1).toLowerCase()} (${d.usgs.niveau[0] + d.usgs.niveau.slice(1).toLowerCase()})`;
+  if (d.geonet && (d.cas === "geonet" || d.cas === "etat" || (d.cas === "eruption" && d.n.geonet))) alerte = `Level ${d.n.geonet}${d.geonet.texte ? ` (${d.geonet.texte.replace(/\.$/, "")})` : ""}`;
+  if (d.cas === "etat") { pastille = d.statut === "eruption" ? "Erupting Now" : "Volcanic Unrest"; emoji = "🌋"; couleur = "#FF6A4D"; }
+  else if (d.cas === "usgs") {
+    const c = d.usgs.couleur; emoji = { YELLOW: "🟡", ORANGE: "🟠", RED: "🔴" }[c] ?? "🟠"; couleur = { YELLOW: "#F2D14B", ORANGE: "#F2A93B", RED: "#E5303A" }[c] ?? "#F2A93B";
+    pastille = `USGS ${c[0] + c.slice(1).toLowerCase()} Alert`;
+  } else if (d.cas !== "eruption") {
+    const niv = d.cas === "jma" ? d.n.jma : d.n.geonet; // 3 orange, 4 red, 5 purple
     emoji = niv >= 5 ? "🟣" : niv >= 4 ? "🔴" : "🟠"; couleur = niv >= 5 ? "#B0124A" : niv >= 4 ? "#E5303A" : "#F2A93B";
-    pastille = d.cas === "usgs" ? `USGS ${d.usgs.couleur[0] + d.usgs.couleur.slice(1).toLowerCase()} Alert` : `Alert Level ${niv}`;
+    pastille = `Alert Level ${niv}`;
   }
-  const titre = d.cas === "eruption" ? `🌋 New Eruption at ${court}${d.pays ? `, ${d.pays}` : ""}` : d.manuel ? `${emoji} ${court} at ${pastille}` : `${emoji} ${court} Raised to ${pastille}`;
+  const titre = d.cas === "eruption" ? `🌋 New Eruption at ${court}${d.pays ? `, ${d.pays}` : ""}`
+    : d.cas === "etat" ? `🌋 ${court} ${d.statut === "eruption" ? "Is Erupting" : "Shows Unrest"}${d.pays ? `, ${d.pays}` : ""}`
+    : d.manuel ? `${emoji} ${court} at ${pastille}` : `${emoji} ${court} Raised to ${pastille}`;
   const coords = `${Math.abs(d.lat).toFixed(2)}°${d.lat >= 0 ? "N" : "S"} ${Math.abs(d.lon).toFixed(2)}°${d.lon >= 0 ? "E" : "W"}`;
 
   // Hashtags (config/hashtags.json): local word, volcano, country in English and in its own language, #Volcano, then a varied tag
@@ -92,7 +100,7 @@ export function textesVolcan(d) {
     type: "volcan", couleur, pastille, nom: court, pays: d.pays, coords, date: new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }),
     ligne2: annee ? (d.cas === "eruption" ? `Eruption Began ${new Date(d.depuis + "T00:00:00Z").toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}` : `Erupting Since ${annee}`) : d.statut === "eruption" ? "Erupting Now" : "Unrest",
     faits: [
-      ...(d.jma ? [["alert", `${d.n.jma} of 5`, "JMA Alert Level"]] : []),
+      ...(d.jma ? [d.n.jma ? ["alert", `${d.n.jma} of 5`, "JMA Alert Level"] : ["alert", d.jma.niveau_en, "JMA Warning"]] : []),
       ...(d.usgs ? [["plane", d.usgs.couleur[0] + d.usgs.couleur.slice(1).toLowerCase(), "Aviation Color Code"], ["alert", d.usgs.niveau[0] + d.usgs.niveau.slice(1).toLowerCase(), "USGS Alert Level"]] : []),
       ...(d.geonet ? [["alert", `Level ${d.n.geonet}`, "GeoNet Alert Level"]] : []),
     ].slice(0, 2),
