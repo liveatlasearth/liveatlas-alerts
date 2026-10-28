@@ -9,9 +9,7 @@ export function brouillon(e, d, txt, fichiers, sortie) {
   const lignes = [
     `**M${d.mag.toFixed(1)}** · ${d.lieu} · ${new Date(d.temps).toISOString().replace("T", " ").slice(0, 16)} UTC · [USGS](${d.url}) · [Live Atlas](${txt.lien})`,
     "",
-    `Networks: ${e.reseaux.join(", ")}. Files are in the workflow artifact \`alerte-${d.id}\` (link below).`,
-    "",
-    ...fichiers.map((f) => `- \`${f}\``),
+    `Networks: ${e.reseaux.join(", ")}.`,
     "",
     ...(e.reseaux.includes("x") ? ["### X", "```", txt.legendes.x, "```", ""] : []),
     ...(e.reseaux.includes("instagram") || e.reseaux.includes("reel") ? ["### Instagram", "```", txt.legendes.instagram, "```", ""] : []),

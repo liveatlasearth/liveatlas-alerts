@@ -42,15 +42,25 @@ jobs:
           name: alerts-${{ github.run_id }}
           path: sortie/
           retention-days: 30
-      - name: One issue per alert
+      - name: One release (direct downloads) and one issue per alert
         if: hashFiles('sortie/*/issue.md') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           for d in sortie/*/; do
             [ -f "$d/issue.md" ] || continue
-            printf '\n---\nFiles (images, reel): %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$d/issue.md"
-            gh issue create --title "$(cat "$d/titre.txt")" --body-file "$d/issue.md"
+            id=$(basename "$d"); tag="alert-$id-$GITHUB_RUN_ID"; base="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$tag"
+            fichiers=$(ls "$d"*.jpg "$d"*.mp4 2>/dev/null || true)
+            gh release create "$tag" $fichiers --title "$(cat "$d/titre.txt")" --notes "Images and reel of this alert. Captions: see the issue."
+            {
+              echo "## Files"
+              for f in $fichiers; do n=$(basename "$f"); echo "- [$n]($base/$n)"; done
+              echo
+              for f in $(ls "$d"*.jpg 2>/dev/null); do n=$(basename "$f"); echo "<img src=\"$base/$n\" width=\"260\">"; done
+              echo
+              cat "$d/issue.md"
+            } > "$d/issue-complet.md"
+            gh issue create --title "$(cat "$d/titre.txt")" --body-file "$d/issue-complet.md"
           done
       - name: Remember what was posted
         if: inputs.id == ''

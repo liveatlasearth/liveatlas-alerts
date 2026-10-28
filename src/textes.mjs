@@ -14,7 +14,11 @@ const MOTS_LOCAUX = {
 const tag = (s) => "#" + s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]/g, "");
 const bas = (s) => s.toLowerCase();
 
-let TERRES = null;
+let TERRES = null, PAYS_NE = null;
+// Natural Earth subregion → zone hashtag
+const ZONES = { Melanesia: "#Pacific", Polynesia: "#Pacific", Micronesia: "#Pacific", "Eastern Africa": "#Africa", "Northern Africa": "#Africa", "Middle Africa": "#Africa", "Southern Africa": "#Africa", "Western Africa": "#Africa",
+  "Central Asia": "#CentralAsia", "South-Eastern Asia": "#SoutheastAsia", "South America": "#SouthAmerica", Caribbean: "#Caribbean", "Eastern Europe": "#Europe", "Northern Europe": "#Europe", "Western Europe": "#Europe", "Southern Europe": "#Europe",
+  "Central America": "#CentralAmerica", "Western Asia": "#MiddleEast", "Eastern Asia": "#EastAsia", "Southern Asia": "#SouthAsia", "Australia and New Zealand": "#Oceania" };
 const surTerre = (lon, lat) => (TERRES ??= lireJson("donnees", "ne_pays_110m.geojson")).features.some((f) => geoContains(f, [lon, lat]));
 
 export function textes(d) {
@@ -31,12 +35,14 @@ export function textes(d) {
   const mmiMax = d.mmi_max ? Math.round(d.mmi_max) : null, ville = d.villes[0], mmiVille = ville ? Math.round(ville.mmi) : null;
   const exposes = d.exposes_vi_plus >= 1000 ? Math.round(d.exposes_vi_plus / 1000) * 1000 : null;
 
-  // Hashtags: earthquake, alert, place, local word (no duplicates, no brand tag)
-  const lieuTags = [...new Set([usa ? pays : pays, ...(ref && ref.split(",")[0].length < 20 ? [ref.split(",")[0]] : [])].map(tag))];
+  // Hashtags (decided Oct 28, 2026): one #earthquake only (never with #earthquakes), alert, country, zone, city, local word, shaking. No brand tag.
+  const zoneTag = ZONES[(PAYS_NE ??= lireJson("donnees", "ne_pays_110m.geojson").features).find((f) => f.properties.NAME === (usa ? "United States of America" : pays))?.properties.SUBREGION];
+  const villeTag = ref && ref.split(",")[0].length < 20 && ref.split(",")[0] !== pays ? tag(ref.split(",")[0]) : null;
   const locaux = (MOTS_LOCAUX[pays] ?? []).map((w) => "#" + w);
-  const hX = ["#earthquake", "#EarthquakeAlert", ...lieuTags, ...locaux].slice(0, 6).join(" ");
-  const hIG = ["#earthquakes", "#earthquake", "#EarthquakeAlert", ...lieuTags, ...locaux, "#seismology"].slice(0, 8).join(" ");
-  const hFB = ["#earthquake", tag(pays), ...locaux.slice(0, 1)].join(" ");
+  const lieux = [...new Set([tag(pays), ...(usa ? ["#USA"] : []), zoneTag, villeTag].filter(Boolean))];
+  const hX = [...new Set(["#earthquake", "#EarthquakeAlert", ...lieux, ...locaux.slice(0, 2), "#shaking"])].join(" ");
+  const hIG = [...new Set(["#earthquake", "#EarthquakeAlert", ...lieux, ...locaux, "#shaking", "#seismology"])].join(" ");
+  const hFB = [...new Set(["#earthquake", tag(pays), ...locaux.slice(0, 1)])].join(" ");
 
   const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : "in " + region}`;
   const lignes = [
