@@ -1,4 +1,5 @@
-# Every 10 minutes: detect significant earthquakes, build the images, reel and captions, open one issue per alert (draft mode).
+# Every 10 minutes: detect significant earthquakes, build the images, reel and captions, put the files in a release,
+# publish on Instagram and Facebook when the Meta key is set, and open one issue per alert with everything.
 name: Alerts
 
 on:
@@ -8,6 +9,9 @@ on:
     inputs:
       id:
         description: "USGS event id to build by hand (optional, e.g. us6000u43g)"
+        required: false
+      reseaux:
+        description: "Networks to publish for a manual run (e.g. reel, or instagram,facebook). Empty = none on a manual run"
         required: false
 
 concurrency:
@@ -21,7 +25,7 @@ permissions:
 jobs:
   alerts:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -35,26 +39,34 @@ jobs:
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: node src/principal.mjs ${{ inputs.id }}
-      - name: Keep the files
-        if: hashFiles('sortie/*/issue.md') != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: alerts-${{ github.run_id }}
-          path: sortie/
-          retention-days: 30
-      - name: One release (direct downloads) and one issue per alert
+      - name: One release per alert (public direct downloads)
         if: hashFiles('sortie/*/issue.md') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           for d in sortie/*/; do
             [ -f "$d/issue.md" ] || continue
-            id=$(basename "$d"); tag="alert-$id-$GITHUB_RUN_ID"; base="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$tag"
-            fichiers=$(ls "$d"*.jpg "$d"*.mp4 2>/dev/null || true)
-            gh release create "$tag" $fichiers --title "$(cat "$d/titre.txt")" --notes "Images and reel of this alert. Captions: see the issue."
+            id=$(basename "$d")
+            gh release create "alert-$id-$GITHUB_RUN_ID" $(ls "$d"*.jpg "$d"*.mp4 2>/dev/null) --title "$(cat "$d/titre.txt")" --notes "Images and reel of this alert. Captions: see the issue."
+          done
+      - name: Publish on Instagram and Facebook
+        if: hashFiles('sortie/*/issue.md') != '' && (inputs.id == '' || inputs.reseaux != '')
+        env:
+          META_PAGE_TOKEN_SEISMES: ${{ secrets.META_PAGE_TOKEN_SEISMES }}
+          RESEAUX: ${{ inputs.reseaux }}
+        run: node src/publier-meta.mjs "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/alert-{id}-$GITHUB_RUN_ID"
+      - name: One issue per alert
+        if: hashFiles('sortie/*/issue.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for d in sortie/*/; do
+            [ -f "$d/issue.md" ] || continue
+            id=$(basename "$d"); base="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/alert-$id-$GITHUB_RUN_ID"
             {
+              [ -f "$d/publie.md" ] && cat "$d/publie.md" && echo
               echo "## Files"
-              for f in $fichiers; do n=$(basename "$f"); echo "- [$n]($base/$n)"; done
+              for f in $(ls "$d"*.jpg "$d"*.mp4 2>/dev/null); do n=$(basename "$f"); echo "- [$n]($base/$n)"; done
               echo
               for f in $(ls "$d"*.jpg 2>/dev/null); do n=$(basename "$f"); echo "<img src=\"$base/$n\" width=\"260\">"; done
               echo

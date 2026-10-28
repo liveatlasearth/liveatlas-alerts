@@ -34,11 +34,12 @@ export function textes(d) {
   const local = HASHTAGS.langues[langue].seisme[0];
   const villeTag = ref && ref.split(",")[0] !== pays ? tagLocal(ref.split(",")[0]) : null;
   const lieux = [villeTag, usa ? tag(pays) : tag(pays), paysLocal ? tagLocal(paysLocal) : null].filter(Boolean);
-  const tresBon = variante(id, "tb", H.tres_bons), destructeur = ["orange", "red"].includes(d.pager) || d.mag >= 7;
-  const large = destructeur ? H.large_destructeur : variante(id, "lg", H.larges);
+  // One "Earthquake" tag only, then a "Seismic" tag to vary the words (user rule, Oct 28, 2026)
+  const sism = H.sismiques, k = sism.indexOf(variante(id, "sm", sism)), sism1 = sism[k], sism2 = sism[(k + 1) % sism.length];
+  const destructeur = ["orange", "red"].includes(d.pager) || d.mag >= 7, large = destructeur ? H.large_destructeur : variante(id, "lg", H.larges);
   const uniques = (l) => [...new Set(l)].join(" ");
-  const hX = uniques([local, ...lieux, ...H.indispensables, ...(lieux.length < 3 ? [tresBon] : [])]);
-  const hIG = uniques([local, ...lieux, ...H.indispensables, tresBon, large]);
+  const hX = uniques([local, ...lieux, ...H.indispensables, sism1]);
+  const hIG = uniques([local, ...lieux, ...H.indispensables, sism1, sism2, large]);
   const hFB = uniques([local, ...lieux.slice(0, 2), "#Earthquake"]);
 
   const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : "in " + region}`;
