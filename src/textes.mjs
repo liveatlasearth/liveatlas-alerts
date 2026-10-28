@@ -21,9 +21,13 @@ export function textes(d) {
   const utc = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(d.temps));
   const m = d.lieu.match(/^(\d+) km ([NSEW]{1,3}) of (.+)$/);
   const ref = m ? m[3] : null, ligneLieu = m ? `${kmEnMi(+m[1])} mi (${m[1]} km) ${m[2]} of ${m[3]}` : d.lieu;
-  const pres = m ? `near ${ref}` : `in the ${d.lieu.replace(/ region$/, " region")}`;
+  // Ocean ridges and rises take "on the" ("on the Reykjanes Ridge"), other regions "in the"
+  const surDorsale = /(Ridge|Rise)$/i.test(d.lieu.replace(/ region$/, "")), article = surDorsale ? "on the" : "in the";
+  const pres = m ? `near ${ref}` : `${article} ${d.lieu}`;
   const region = ref ?? d.lieu.replace(/ region$/, "");
   const peuProfond = d.prof_km < 70, enMer = !surTerre(d.lon, d.lat);
+  // Open ocean with no town nearby: local time means nothing there, the time is given in UTC
+  const horaireMer = !m && enMer, moisUtc = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" }).format(new Date(d.temps));
   const pays = d.pays, usa = auxUSA(d.lieu), lien = COMPTES.seismes.lien_seisme.replace("{id}", id).replace("{lon}", d.lon.toFixed(2)).replace("{lat}", d.lat.toFixed(2));
   const mmiMax = d.mmi_max ? Math.round(d.mmi_max) : null, ville = d.villes[0], mmiVille = ville ? Math.round(ville.mmi) : null;
   const exposes = d.exposes_vi_plus >= 1000 ? Math.round(d.exposes_vi_plus / 1000) * 1000 : null;
@@ -42,10 +46,10 @@ export function textes(d) {
   const hIG = uniques([local, ...lieux, ...H.indispensables, sism1, sism2, large]);
   const hFB = uniques([local, ...lieux.slice(0, 2), "#Earthquake"]);
 
-  const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : "in " + region}`;
+  const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : (surDorsale ? "on the " : "in the ") + region}`;
   const lignes = [
     `📍 ${ligneLieu}`,
-    `🕐 ${heure} Local, ${mois} ${jour}`,
+    horaireMer ? `🕐 ${utc} UTC, ${moisUtc}` : `🕐 ${heure} Local, ${mois} ${jour}`,
     `⬇️ Depth: ${d.prof_mi} mi (${Math.round(d.prof_km)} km)`,
     ...(mmiMax ? [`📳 Strongest Shaking: ${ROMAIN[mmiMax]} (${NOM_MMI[mmiMax]})`] : []),
   ];
@@ -53,7 +57,7 @@ export function textes(d) {
     `📏 Magnitude: ${M} (${c.nom})`,
     `📍 Location: ${ligneLieu}`,
     `📅 Date: ${moisLong} ${jour}, ${annee}`,
-    `🕐 Time: ${heure} Local (${utc} UTC)`,
+    horaireMer ? `🕐 Time: ${utc} UTC` : `🕐 Time: ${heure} Local (${utc} UTC)`,
     `⬇️ Depth: ${d.prof_mi} mi (${Math.round(d.prof_km)} km)`,
     ...(mmiMax ? [`📳 Strongest Shaking: ${ROMAIN[mmiMax]} (${NOM_MMI[mmiMax]})`] : []),
     ...(exposes ? [`👥 Strong Shaking or More: About ${nf.format(exposes)} People`] : []),
