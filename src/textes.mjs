@@ -3,22 +3,15 @@
 // calm wording, nothing that is not in the USGS data.
 import { geoContains } from "d3-geo";
 import { classe, COMPTES, kmEnMi, lireJson, NOM_MMI, nf, ROMAIN, variante } from "./commun.mjs";
+const HASHTAGS = lireJson("config", "hashtags.json");
 import { auxUSA } from "./detecter.mjs";
 
-const MOTS_LOCAUX = {
-  Mexico: ["sismo", "temblor"], Guatemala: ["sismo", "temblor"], "El Salvador": ["sismo", "temblor"], Honduras: ["sismo"], Nicaragua: ["sismo"], "Costa Rica": ["sismo", "temblor"],
-  Panama: ["sismo", "temblor"], Colombia: ["sismo", "temblor"], Ecuador: ["sismo"], Peru: ["sismo", "temblor"], Chile: ["sismo", "temblor"], Argentina: ["sismo"], Bolivia: ["sismo"], Venezuela: ["sismo"],
-  "Puerto Rico": ["temblor"], "Dominican Republic": ["sismo"], Spain: ["terremoto"], Italy: ["terremoto"], Portugal: ["sismo"],
-  Japan: ["地震"], China: ["地震"], Taiwan: ["地震"], Philippines: ["lindol"], Indonesia: ["gempa"], Turkey: ["deprem"], "Türkiye": ["deprem"], Greece: ["σεισμός"],
-};
 const tag = (s) => "#" + s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]/g, "");
+// Hashtag in the local language: accents and non-Latin letters kept, spaces and punctuation removed
+const tagLocal = (s) => "#" + s.replace(/[\s'’.,\-]/g, "");
 const bas = (s) => s.toLowerCase();
 
-let TERRES = null, PAYS_NE = null;
-// Natural Earth subregion → zone hashtag
-const ZONES = { Melanesia: "#Pacific", Polynesia: "#Pacific", Micronesia: "#Pacific", "Eastern Africa": "#Africa", "Northern Africa": "#Africa", "Middle Africa": "#Africa", "Southern Africa": "#Africa", "Western Africa": "#Africa",
-  "Central Asia": "#CentralAsia", "South-Eastern Asia": "#SoutheastAsia", "South America": "#SouthAmerica", Caribbean: "#Caribbean", "Eastern Europe": "#Europe", "Northern Europe": "#Europe", "Western Europe": "#Europe", "Southern Europe": "#Europe",
-  "Central America": "#CentralAmerica", "Western Asia": "#MiddleEast", "Eastern Asia": "#EastAsia", "Southern Asia": "#SouthAsia", "Australia and New Zealand": "#Oceania" };
+let TERRES = null;
 const surTerre = (lon, lat) => (TERRES ??= lireJson("donnees", "ne_pays_110m.geojson")).features.some((f) => geoContains(f, [lon, lat]));
 
 export function textes(d) {
@@ -35,14 +28,18 @@ export function textes(d) {
   const mmiMax = d.mmi_max ? Math.round(d.mmi_max) : null, ville = d.villes[0], mmiVille = ville ? Math.round(ville.mmi) : null;
   const exposes = d.exposes_vi_plus >= 1000 ? Math.round(d.exposes_vi_plus / 1000) * 1000 : null;
 
-  // Hashtags (decided Oct 28, 2026): one #earthquake only (never with #earthquakes), alert, country, zone, city, local word, shaking. No brand tag.
-  const zoneTag = ZONES[(PAYS_NE ??= lireJson("donnees", "ne_pays_110m.geojson").features).find((f) => f.properties.NAME === (usa ? "United States of America" : pays))?.properties.SUBREGION];
-  const villeTag = ref && ref.split(",")[0].length < 20 && ref.split(",")[0] !== pays ? tag(ref.split(",")[0]) : null;
-  const locaux = (MOTS_LOCAUX[pays] ?? []).map((w) => "#" + w);
-  const lieux = [...new Set([tag(pays), ...(usa ? ["#USA"] : []), zoneTag, villeTag].filter(Boolean))];
-  const hX = [...new Set(["#earthquake", "#EarthquakeAlert", ...lieux, ...locaux.slice(0, 2), "#shaking"])].join(" ");
-  const hIG = [...new Set(["#earthquake", "#EarthquakeAlert", ...lieux, ...locaux, "#shaking", "#seismology"])].join(" ");
-  const hFB = [...new Set(["#earthquake", tag(pays), ...locaux.slice(0, 1)])].join(" ");
+  // Hashtags (config/hashtags.json, decided Oct 28, 2026): local word (mandatory), city, country in English, country in its own language,
+  // #Earthquake, #EarthquakeAlert, a rotating "very good" tag; on Instagram a broad tag (#NaturalDisaster only when destructive).
+  const H = HASHTAGS.seismes, [langue = "en", paysLocal] = HASHTAGS.pays[usa ? "United States" : pays] ?? [];
+  const local = HASHTAGS.langues[langue].seisme[0];
+  const villeTag = ref && ref.split(",")[0] !== pays ? tagLocal(ref.split(",")[0]) : null;
+  const lieux = [villeTag, usa ? tag(pays) : tag(pays), paysLocal ? tagLocal(paysLocal) : null].filter(Boolean);
+  const tresBon = variante(id, "tb", H.tres_bons), destructeur = ["orange", "red"].includes(d.pager) || d.mag >= 7;
+  const large = destructeur ? H.large_destructeur : variante(id, "lg", H.larges);
+  const uniques = (l) => [...new Set(l)].join(" ");
+  const hX = uniques([local, ...lieux, ...H.indispensables, ...(lieux.length < 3 ? [tresBon] : [])]);
+  const hIG = uniques([local, ...lieux, ...H.indispensables, tresBon, large]);
+  const hFB = uniques([local, ...lieux.slice(0, 2), "#Earthquake"]);
 
   const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : "in " + region}`;
   const lignes = [

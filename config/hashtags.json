@@ -1,0 +1,51 @@
+{
+ "_lisez_moi": "Hashtag library of the alert posts (decided Oct 28, 2026). Per post: local word for the event (mandatory), city, country in English, country in its own language when different, #Earthquake, #EarthquakeAlert, one 'very good' tag that rotates, and on Instagram one broad tag. #NaturalDisaster only for destructive events (USGS impact orange or red, or M7+). #Tectonics optional, never automatic. No brand tag.",
+ "seismes": {
+  "indispensables": ["#Earthquake", "#EarthquakeAlert"],
+  "niveau1": ["#Earthquake", "#EarthquakeAlert", "#Seismology", "#SeismicActivity", "#EarthquakeNews"],
+  "tres_bons": ["#Seismology", "#SeismicActivity", "#EarthquakeNews"],
+  "niveau2": ["#EarthquakeUpdate", "#Seismic", "#Tectonics", "#TectonicPlates", "#Aftershock", "#Magnitude", "#Epicenter", "#Geology", "#Geophysics", "#EarthquakeMonitoring"],
+  "larges": ["#EarthScience", "#PlanetEarth", "#Earth"],
+  "large_destructeur": "#NaturalDisaster",
+  "niveau3": ["#NaturalDisaster", "#NaturalHazards", "#BreakingNews", "#WorldNews", "#News", "#Earth", "#EarthScience", "#DisasterAlert", "#Environment", "#PlanetEarth"]
+ },
+ "volcans": {
+  "indispensables": ["#Volcano", "#VolcanoAlert"],
+  "niveau1": ["#Volcano", "#VolcanicEruption", "#VolcanoAlert", "#Volcanology", "#VolcanicActivity"],
+  "tres_bons": ["#Volcanology", "#VolcanicActivity", "#VolcanicEruption"],
+  "niveau2": ["#VolcanoEruption", "#EruptionUpdate", "#VolcanoMonitoring", "#VolcanicAsh", "#AshCloud", "#Lava", "#Magma", "#VolcanicHazard", "#Geology", "#Seismology"],
+  "larges": ["#EarthScience", "#PlanetEarth", "#Earth"],
+  "large_destructeur": "#NaturalDisaster",
+  "niveau3": ["#NaturalDisaster", "#NaturalHazards", "#BreakingNews", "#WorldNews", "#News", "#Earth", "#EarthScience", "#DisasterAlert", "#Environment", "#PlanetEarth"]
+ },
+ "langues": {
+  "en": { "seisme": ["#Quake"], "volcan": ["#Eruption"] },
+  "fr": { "seisme": ["#Seisme", "#TremblementDeTerre"], "volcan": ["#EruptionVolcanique"] },
+  "es": { "seisme": ["#Sismo", "#Terremoto", "#Temblor"], "volcan": ["#ErupcionVolcanica"] },
+  "it": { "seisme": ["#Terremoto", "#Sisma"], "volcan": ["#EruzioneVulcanica"] },
+  "pt": { "seisme": ["#Terremoto", "#AbaloSísmico"], "volcan": ["#ErupcaoVulcanica"] },
+  "de": { "seisme": ["#Erdbeben", "#Beben"], "volcan": ["#Vulkanausbruch"] },
+  "tr": { "seisme": ["#Deprem", "#SonDepremler"], "volcan": ["#YanardağPatlaması"] },
+  "id": { "seisme": ["#Gempa", "#GempaBumi"], "volcan": ["#LetusanGunungApi"] },
+  "ja": { "seisme": ["#地震", "#地震速報"], "volcan": ["#火山噴火"] },
+  "zh": { "seisme": ["#地震", "#地震预警"], "volcan": ["#火山喷发"] },
+  "zh-tw": { "seisme": ["#地震"], "volcan": ["#火山噴發"] },
+  "ko": { "seisme": ["#지진", "#지진속보"], "volcan": ["#화산폭발"] },
+  "ru": { "seisme": ["#Землетрясение", "#Землетрясения"], "volcan": ["#ИзвержениеВулкана"] },
+  "el": { "seisme": ["#Σεισμός", "#Σεισμοί"], "volcan": ["#ΈκρηξηΗφαιστείου"] },
+  "tl": { "seisme": ["#Lindol"], "volcan": ["#PagsabogNgBulkan"] },
+  "fa": { "seisme": ["#زلزله"], "volcan": [] },
+  "hi": { "seisme": ["#भूकंप"], "volcan": [] },
+  "ne": { "seisme": ["#भूकम्प"], "volcan": [] }
+ },
+ "pays": {
+  "Mexico": ["es", "México"], "Guatemala": ["es"], "El Salvador": ["es"], "Honduras": ["es"], "Nicaragua": ["es"], "Costa Rica": ["es"], "Panama": ["es", "Panamá"],
+  "Colombia": ["es"], "Ecuador": ["es"], "Peru": ["es", "Perú"], "Chile": ["es"], "Argentina": ["es"], "Bolivia": ["es"], "Venezuela": ["es"], "Cuba": ["es"],
+  "Dominican Republic": ["es", "RepúblicaDominicana"], "Puerto Rico": ["es"], "Spain": ["es", "España"],
+  "Italy": ["it", "Italia"], "Portugal": ["pt"], "Brazil": ["pt", "Brasil"], "France": ["fr"], "Germany": ["de", "Deutschland"], "Austria": ["de", "Österreich"], "Switzerland": ["de", "Schweiz"],
+  "Turkey": ["tr", "Türkiye"], "Türkiye": ["tr"], "Indonesia": ["id"], "Japan": ["ja", "日本"], "China": ["zh", "中国"], "Taiwan": ["zh-tw", "台灣"],
+  "South Korea": ["ko", "한국"], "Russia": ["ru", "Россия"], "Greece": ["el", "Ελλάδα"], "Philippines": ["tl", "Pilipinas"], "Iran": ["fa", "ایران"], "Afghanistan": ["fa"],
+  "India": ["hi", "भारत"], "Nepal": ["ne", "नेपाल"], "Vanuatu": ["fr"], "New Caledonia": ["fr", "NouvelleCalédonie"], "French Polynesia": ["fr", "PolynésieFrançaise"],
+  "Guadeloupe": ["fr"], "Martinique": ["fr"], "Haiti": ["fr", "Haïti"]
+ }
+}
