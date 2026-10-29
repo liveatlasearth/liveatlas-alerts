@@ -2,7 +2,7 @@
 // Rules (Live Atlas templates, Oct 2026): Title Case labels, miles first then km, local time, no source line, no disclaimer,
 // calm wording, nothing that is not in the USGS data.
 import { geoContains } from "d3-geo";
-import { ajusterX, classe, COMPTES, kmEnMi, lireJson, NOM_MMI, nf, ROMAIN, variante } from "./commun.mjs";
+import { ajusterX, classe, COMPTES, DIRIGE, kmEnMi, lireJson, NOM_MMI, nf, ROMAIN, titreLieu, variante } from "./commun.mjs";
 const HASHTAGS = lireJson("config", "hashtags.json");
 import { auxUSA } from "./detecter.mjs";
 
@@ -20,11 +20,13 @@ export function textes(d) {
   const heure = loc({ hour: "numeric", minute: "2-digit" }), mois = loc({ month: "short" }), moisLong = loc({ month: "long" }), jour = loc({ day: "numeric" }), annee = loc({ year: "numeric" });
   const utc = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(d.temps));
   const m = d.lieu.match(/^(\d+) km ([NSEW]{1,3}) of (.+)$/);
-  const ref = m ? m[3] : null, ligneLieu = m ? `${kmEnMi(+m[1])} mi (${m[1]} km) ${m[2]} of ${m[3]}` : d.lieu;
+  const ref = m ? m[3] : null, ligneLieu = m ? `${kmEnMi(+m[1])} mi (${m[1]} km) ${m[2]} of ${m[3]}` : titreLieu(d.lieu);
   // Ocean ridges and rises take "on the" ("on the Reykjanes Ridge"), other regions "in the"
   const surDorsale = / (Ridge|Rise)$/i.test(d.lieu.replace(/ region$/, "")), article = surDorsale ? "on the" : "in the";
-  const pres = m ? `near ${ref}` : `${article} ${d.lieu}`;
-  const region = ref ?? d.lieu.replace(/ region$/, "");
+  // No town nearby: a direction ("southeast of Easter Island") is said as is, other places take the article; Title Case on screen and in titles
+  const dirige = !m && DIRIGE.test(d.lieu);
+  const pres = m ? `near ${ref}` : dirige ? d.lieu : `${article} ${d.lieu}`;
+  const region = ref ?? titreLieu(d.lieu.replace(/ region$/, ""));
   const peuProfond = d.prof_km < 70, enMer = !surTerre(d.lon, d.lat);
   // Depth fixed by the USGS analyst (not computed): "Shallow, Not Yet Measured" (choice of the user, 29/10/2026); a fixed deep value stays a figure, marked as estimated
   const profFixee = d.prof_fixee && peuProfond, profEstimee = d.prof_fixee && !peuProfond;
@@ -49,7 +51,7 @@ export function textes(d) {
   const hIG = uniques([local, ...lieux, ...H.indispensables, sism1, sism2, large]);
   const hFB = uniques([local, ...lieux.slice(0, 2), "#Earthquake"]);
 
-  const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : (surDorsale ? "on the " : "in the ") + region}`;
+  const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : dirige ? region : (surDorsale ? "on the " : "in the ") + region}`;
   const lignes = [
     `📍 ${ligneLieu}`,
     horaireMer ? `🕐 ${utc} UTC, ${moisUtc}` : `🕐 ${heure} Local, ${mois} ${jour}`,

@@ -5,7 +5,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { geoDistance } from "d3-geo";
-import { ajusterX, json, kmEnMi, lireJson, nf, RACINE, variante } from "./commun.mjs";
+import { ajusterX, DIRIGE, json, kmEnMi, lireJson, nf, nomPropre, RACINE, titreLieu, variante } from "./commun.mjs";
 
 const HASHTAGS = lireJson("config", "hashtags.json").seismes;
 const ETATS_US = { CA: "California", NV: "Nevada", OR: "Oregon", WA: "Washington", UT: "Utah", ID: "Idaho", MT: "Montana", WY: "Wyoming", NM: "New Mexico", AZ: "Arizona", TX: "Texas", OK: "Oklahoma", HI: "Hawaii", AK: "Alaska", CO: "Colorado", KS: "Kansas" };
@@ -18,10 +18,11 @@ const newYork = (ms) => {
 // Due on Wednesday from 12:00 PM New York time until the end of that day, once per week (etat._hebdo = date of the last one)
 export const hebdoDu = (etat, maintenant = Date.now()) => { const n = newYork(maintenant); return n.jour === "Wed" && n.heure >= 12 && etat._hebdo !== n.date ? n.date : null; };
 
-// Region of a USGS place: "191 km ENE of Nagqu, China" → China ; "Bonin Islands, Japan region" → Japan ; "10 km N of X, CA" → California
-const region = (place = "") => { const r = place.split(", ").at(-1).replace(/ region$/, ""); return ETATS_US[r] ?? r; };
-// Readable place: "191 km ENE of Nagqu, China" → "Near Nagqu, China"
-const lieu = (place = "") => { const m = place.match(/^\d+ km [NSEW]{1,3} of (.+)$/); const l = (m ? m[1] : place).replace(/ region$/, ""); const p = l.split(", "); if (ETATS_US[p.at(-1)]) p[p.length - 1] = ETATS_US[p.at(-1)]; return (m ? "Near " : "") + p.join(", "); };
+// Region of a USGS place: "191 km ENE of Nagqu, China" → China ; "Bonin Islands, Japan region" → Japan ; "10 km N of X, CA" → California ;
+// "southeast of Easter Island" → Easter Island
+const region = (place = "") => { const r = nomPropre(place.split(", ").at(-1).replace(/ region$/, "")); return ETATS_US[r] ?? r; };
+// Readable place: "191 km ENE of Nagqu, China" → "Near Nagqu, China" ; "southeast of Easter Island" → "Southeast of Easter Island"
+const lieu = (place = "") => { const m = place.match(/^\d+ km [NSEW]{1,3} of (.+)$/); const l = (m ? m[1] : titreLieu(place)).replace(/ region$/, ""); const p = l.split(", "); if (ETATS_US[p.at(-1)]) p[p.length - 1] = ETATS_US[p.at(-1)]; return (m ? "Near " : "") + p.join(", "); };
 const ville = (place = "") => lieu(place).replace(/^Near /, "");
 const jourCourt = (ms) => new Date(ms).toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 const jourLong = (ms) => new Date(ms).toLocaleString("en-US", { month: "long", day: "numeric", timeZone: "UTC" });
@@ -65,7 +66,9 @@ export async function donneesHebdo(dateNy) {
 
 export function textesHebdo(d) {
   const f = d.fort, a = d.actif, p = d.profond, r = d.ressenti;
-  const pres = (x) => x.lieu.startsWith("Near ") ? x.lieu.replace(/^Near /, "near ") : `in the ${x.lieu}`.replace("in the Near", "near");
+  const pres = (x) => x.lieu.startsWith("Near ") ? x.lieu.replace(/^Near /, "near ") : DIRIGE.test(x.place) ? x.place.replace(/ region$/, "") : `in the ${x.lieu}`;
+  // Same in the captions, Title Case: "Near X", "Southeast of X", "in the X"
+  const dans = (x) => x.lieu.startsWith("Near ") || DIRIGE.test(x.place) ? x.lieu : `in the ${x.lieu}`;
   const phraseActif = `The busiest spot was ${a.nom === f.region ? "again " : ""}around ${a.nom}: ${a.n} quakes, led by a magnitude ${a.max.toFixed(1)}${a.nJourMax >= 10 ? `, with ${a.nJourMax} on ${a.jourMaxLong} alone` : ""}.`;
   const phraseProfond = `${d.mode === "deux" ? "The deepest" : "And the deepest"} started ${p.mi} miles below ${p.region}.`;
   const phraseRessenti = `${d.mode === "deux" ? "And the most felt" : "And the most felt"}, a magnitude ${r.mag.toFixed(1)} ${pres(r)}, drew ${nf.format(r.felt)} reports from people who felt it.`;
@@ -79,7 +82,7 @@ export function textesHebdo(d) {
     `See every one of them on the live map, link in bio.`,
   ].join("\n\n");
   const emoji = f.mag >= 6 ? "🔴" : "🟠";
-  const ligne5 = [...(d.mode !== "ressenti" ? [`⬇️ Deepest: ${p.mi} mi (${p.km} km), M${p.mag.toFixed(1)} ${p.lieu.startsWith("Near") ? p.lieu : "in the " + p.lieu} (${p.jour})`] : []), ...(d.mode !== "profond" ? [`🙋 Most Felt: M${r.mag.toFixed(1)} ${r.lieu}, ${nf.format(r.felt)} Reports`] : [])];
+  const ligne5 = [...(d.mode !== "ressenti" ? [`⬇️ Deepest: ${p.mi} mi (${p.km} km), M${p.mag.toFixed(1)} ${dans(p)} (${p.jour})`] : []), ...(d.mode !== "profond" ? [`🙋 Most Felt: M${r.mag.toFixed(1)} ${r.lieu}, ${nf.format(r.felt)} Reports`] : [])];
   const lignes = [`📊 Quakes M4.5+: ${d.n}`, `${emoji} Strongest: M${f.mag.toFixed(1)}, ${f.lieu} (${f.jour})`, `📍 Busiest Spot: ${a.nom}, ${a.n} Quakes${a.nJourMax >= 10 ? ` (${a.nJourMax} on ${a.jourMax})` : ""}`, ...ligne5];
   const lieux = [...new Set([f.region, a.nom, d.mode !== "ressenti" ? p.region : r.region, d.mode === "deux" ? r.region : null].filter(Boolean).map(tag))];
   const sism = HASHTAGS.sismiques, s1 = variante(d.id, "sm", sism), s2 = sism[(sism.indexOf(s1) + 1) % sism.length], large = variante(d.id, "lg", HASHTAGS.larges);

@@ -25,6 +25,12 @@ export const NOM_MMI = { 1: "Not Felt", 2: "Weak", 3: "Weak", 4: "Light", 5: "Mo
 // USGS magnitude classes: color of the pill, the number, the rings and the caption emoji
 export const CLASSES = [[8, "Great", "#B0124A", "🟣"], [7, "Major", "#E5303A", "🔴"], [6, "Strong", "#FF6A4D", "🔴"], [5, "Moderate", "#F2A93B", "🟠"], [4, "Light", "#F2D14B", "🟡"], [0, "Minor", "#F2D14B", "🟡"]];
 export const classe = (mag) => { const [, nom, couleur, emoji] = CLASSES.find(([m]) => mag >= m); return { nom, couleur, emoji }; };
+// USGS places with no town nearby start lowercase: "southeast of Easter Island", "off the coast of Oregon", "central Mid-Atlantic Ridge".
+// DIRIGE: the place is a direction, said without "in the"; nomPropre: the proper name only (hashtags, regions); titreLieu: Title Case for display
+export const DIRIGE = /^(?:north|south|east|west)[a-z]* of |^(?:off|near) the /;
+export const nomPropre = (s) => s.replace(/^(?:[a-z]+ )+/, "");
+const PETITS = ["of", "the", "and", "on", "in", "at", "off"];
+export const titreLieu = (s) => s.split(" ").map((w, i) => i && PETITS.includes(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 // Length of a post as X counts it (X without a paid plan: 280): a link = 23, an emoji = 2 (its variation selector free),
 // Latin letters and common punctuation = 1, everything else = 2 (twitter-text rules)
 export const longueurX = (t) => {
