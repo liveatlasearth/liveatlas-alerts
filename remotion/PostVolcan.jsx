@@ -3,7 +3,7 @@
 import React from "react";
 import { AbsoluteFill, Img, staticFile } from "remotion";
 import { F, usePolices } from "./commun.jsx";
-import { Carte, Ico, projeter, useDonnees } from "./PostSeisme.jsx";
+import { boiteFiche, Carte, Ico, projeter, reserveFiche, useDonnees } from "./PostSeisme.jsx";
 
 const Haut = ({ t, largeur }) => (
   <div style={{ position: "absolute", left: 56, top: 46, width: largeur, display: "flex", alignItems: "center", gap: 18 }}>
@@ -12,13 +12,13 @@ const Haut = ({ t, largeur }) => (
     <span style={{ font: `500 24px ${F.mono}`, letterSpacing: ".1em", color: "#b9c7d0", textTransform: "uppercase" }}>{t.date}</span>
   </div>
 );
-const Fiche = ({ t, x, y, W }) => {
-  const g = Math.max(40, Math.min(x - 50, W - 520));
+const Fiche = ({ t, x, y, W, min }) => {
+  const { g, taille } = boiteFiche(t.nom, [t.coords, t.pastille], x, W, min);
   return (
     <>
       <div style={{ position: "absolute", left: x - 1, top: y + 34, width: 2, height: 116, background: t.couleur }} />
       <div style={{ position: "absolute", left: g, top: y + 150, background: "rgba(11,20,28,.86)", border: `2px solid ${t.couleur}`, padding: "16px 24px 18px", display: "flex", flexDirection: "column", gap: 6, whiteSpace: "nowrap" }}>
-        <b style={{ font: `800 46px/1 ${F.titre}`, color: t.couleur }}>{t.nom}</b>
+        <b style={{ font: `800 ${taille}px/1 ${F.titre}`, color: t.couleur }}>{t.nom}</b>
         <span style={{ font: `500 21px ${F.mono}`, letterSpacing: ".12em", textTransform: "uppercase", color: "#e3eaef" }}>{t.coords}</span>
         <span style={{ font: `500 21px ${F.mono}`, letterSpacing: ".12em", textTransform: "uppercase", color: "#e3eaef" }}>{t.pastille}</span>
       </div>
@@ -52,9 +52,9 @@ export const PostVolcan = ({ dossier, t, format }) => {
     const W = 1600, H = 900, cx = 0.71, cy = 0.38, zoom = 4, pt = projeter(d, W, H, cx, cy, zoom);
     return (
       <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
-        <Carte d={d} W={W} H={H} cx={cx} cy={cy} zoom={zoom} couleur={t.couleur} mode="volcan" reserve={[[0, 0, W * 0.5, H], ...(pt ? [[pt[0] - 60, pt[1] + 120, pt[0] + 480, pt[1] + 300]] : [])]} />
+        <Carte d={d} W={W} H={H} cx={cx} cy={cy} zoom={zoom} couleur={t.couleur} mode="volcan" reserve={[[0, 0, W * 0.5, H], ...reserveFiche(t.nom, [t.coords, t.pastille], pt, W, 940)]} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,#0b141c 0%,#0b141c 40%,rgba(11,20,28,.55) 47%,rgba(11,20,28,0) 56%)" }} />
-        {pt && <Fiche t={t} x={pt[0]} y={pt[1]} W={W} />}
+        {pt && <Fiche t={t} x={pt[0]} y={pt[1]} W={W} min={940} />}
         <Haut t={t} largeur={860} />
         <Bloc t={t} largeur={860} style={{ left: 56, top: 170 }} />
         <Pied />
@@ -64,7 +64,7 @@ export const PostVolcan = ({ dossier, t, format }) => {
   const W = 1080, H = 1350, cy = 0.29, zoom = 4, pt = projeter(d, W, H, 0.5, cy, zoom);
   return (
     <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
-      <Carte d={d} W={W} H={H} cx={0.5} cy={cy} zoom={zoom} couleur={t.couleur} mode="volcan" reserve={pt ? [[pt[0] - 60, pt[1] + 120, pt[0] + 480, pt[1] + 300]] : []} />
+      <Carte d={d} W={W} H={H} cx={0.5} cy={cy} zoom={zoom} couleur={t.couleur} mode="volcan" reserve={reserveFiche(t.nom, [t.coords, t.pastille], pt, W)} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(11,20,28,.8) 0%,rgba(11,20,28,0) 11%,rgba(11,20,28,0) 48%,rgba(11,20,28,.93) 60%,#0b141c 70%)" }} />
       {pt && <Fiche t={t} x={pt[0]} y={pt[1]} W={W} />}
       <Haut t={t} largeur={968} />

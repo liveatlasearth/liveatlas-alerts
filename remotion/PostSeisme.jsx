@@ -3,7 +3,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, continueRender, delayRender, Img, staticFile } from "remotion";
 import { geoDistance, geoGraticule10, geoOrthographic, geoPath } from "d3-geo";
-import { F, usePolices } from "./commun.jsx";
+import { F, mesure, usePolices } from "./commun.jsx";
 
 const MMI = { 3: "#a0e6ff", 4: "#80ffff", 5: "#7cff90", 6: "#ffff00", 7: "#ffc600", 8: "#ff9100", 9: "#ff0000", 10: "#c80000" };
 const ROMAIN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"], NOM = { 2: "Weak", 3: "Weak", 4: "Light", 5: "Moderate", 6: "Strong", 7: "Very Strong", 8: "Severe", 9: "Violent", 10: "Extreme" };
@@ -84,15 +84,24 @@ const Haut = ({ t, largeur }) => (
     <span style={{ font: `500 24px ${F.mono}`, letterSpacing: ".1em", color: "#b9c7d0", textTransform: "uppercase" }}>{t.dateLongue}</span>
   </div>
 );
-const Fiche = ({ t, x, y, W }) => {
-  const g = Math.max(40, Math.min(x - 50, W - 520));
+// Place card under the epicenter: width measured from its text, shifted left (or the name shrunk) so it never leaves the image
+// (titre: name in color, lignes: monospace lines in capitals; 52 px = padding and border; min: left limit, 940 on the X format
+// where the text block takes the left half)
+export const boiteFiche = (titre, lignes, x, W, min = 40) => {
+  const taille = taillePour(titre, 800, 46, W - 40 - min - 52);
+  const l = Math.ceil(Math.max(mesure(titre, `800 ${taille}px Bricolage`), ...lignes.map((s) => mesure(s.toUpperCase(), "500 21px Mono", 21 * 0.12)))) + 52;
+  return { g: Math.max(min, Math.min(x - 50, W - 40 - l)), l, taille };
+};
+export const reserveFiche = (titre, lignes, pt, W, min) => { if (!pt) return []; const { g, l } = boiteFiche(titre, lignes, pt[0], W, min); return [[g - 20, pt[1] + 120, g + l + 20, pt[1] + 300]]; };
+const lignesFiche = (t) => [t.coords, `${t.date} ${t.heure} ${t.libelleHeure === "UTC" ? "UTC" : "Local"}`];
+const Fiche = ({ t, x, y, W, min }) => {
+  const { g, taille } = boiteFiche(t.lieuFiche, lignesFiche(t), x, W, min);
   return (
     <>
       <div style={{ position: "absolute", left: x - 1, top: y + 34, width: 2, height: 116, background: t.couleur }} />
       <div style={{ position: "absolute", left: g, top: y + 150, background: "rgba(11,20,28,.86)", border: `2px solid ${t.couleur}`, padding: "16px 24px 18px", display: "flex", flexDirection: "column", gap: 6, whiteSpace: "nowrap" }}>
-        <b style={{ font: `800 46px/1 ${F.titre}`, color: t.couleur }}>{t.lieuFiche}</b>
-        <span style={{ font: `500 21px ${F.mono}`, letterSpacing: ".12em", textTransform: "uppercase", color: "#e3eaef" }}>{t.coords}</span>
-        <span style={{ font: `500 21px ${F.mono}`, letterSpacing: ".12em", textTransform: "uppercase", color: "#e3eaef" }}>{t.date} {t.heure} {t.libelleHeure === "UTC" ? "UTC" : "Local"}</span>
+        <b style={{ font: `800 ${taille}px/1 ${F.titre}`, color: t.couleur }}>{t.lieuFiche}</b>
+        {lignesFiche(t).map((s) => <span key={s} style={{ font: `500 21px ${F.mono}`, letterSpacing: ".12em", textTransform: "uppercase", color: "#e3eaef" }}>{s}</span>)}
       </div>
     </>
   );
@@ -132,9 +141,9 @@ export const PostSeisme = ({ dossier, t, format }) => {
     const W = 1600, H = 900, cx = 0.71, cy = 0.38, zoom = 3, pt = projeter(d, W, H, cx, cy, zoom);
     return (
       <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
-        <Carte d={d} W={W} H={H} cx={cx} cy={cy} zoom={zoom} couleur={t.couleur} reserve={[[0, 0, W * 0.5, H], ...(pt ? [[pt[0] - 60, pt[1] + 120, pt[0] + 480, pt[1] + 300]] : [])]} />
+        <Carte d={d} W={W} H={H} cx={cx} cy={cy} zoom={zoom} couleur={t.couleur} reserve={[[0, 0, W * 0.5, H], ...reserveFiche(t.lieuFiche, lignesFiche(t), pt, W, 940)]} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,#0b141c 0%,#0b141c 40%,rgba(11,20,28,.55) 47%,rgba(11,20,28,0) 56%)" }} />
-        {pt && <Fiche t={t} x={pt[0]} y={pt[1]} W={W} />}
+        {pt && <Fiche t={t} x={pt[0]} y={pt[1]} W={W} min={940} />}
         <Haut t={t} largeur={860} />
         <Bloc t={t} largeur={860} style={{ left: 56, top: 160 }} />
         <Pied />
@@ -169,7 +178,7 @@ export const PostSeisme = ({ dossier, t, format }) => {
   const W = 1080, H = 1350, cy = 0.29, zoom = 3.4, pt = projeter(d, W, H, 0.5, cy, zoom);
   return (
     <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
-      <Carte d={d} W={W} H={H} cx={0.5} cy={cy} zoom={zoom} couleur={t.couleur} reserve={pt ? [[pt[0] - 60, pt[1] + 120, pt[0] + 480, pt[1] + 300]] : []} />
+      <Carte d={d} W={W} H={H} cx={0.5} cy={cy} zoom={zoom} couleur={t.couleur} reserve={reserveFiche(t.lieuFiche, lignesFiche(t), pt, W)} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(11,20,28,.8) 0%,rgba(11,20,28,0) 11%,rgba(11,20,28,0) 48%,rgba(11,20,28,.93) 60%,#0b141c 70%)" }} />
       {pt && <Fiche t={t} x={pt[0]} y={pt[1]} W={W} />}
       <Haut t={t} largeur={968} />

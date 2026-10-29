@@ -4,7 +4,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Audio, Freeze, Img, Sequence, continueRender, delayRender, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { geoDistance, geoGraticule10, geoOrthographic, geoPath } from "d3-geo";
-import { F, usePolices } from "./commun.jsx";
+import { F, mesure, usePolices } from "./commun.jsx";
 
 const CL = { extrapolateLeft: "clamp", extrapolateRight: "clamp" };
 const lisse = (u) => u * u * (3 - 2 * u);
@@ -201,13 +201,17 @@ const Accroche = ({ t, S, d }) => {
 // Scène B · l'essentiel : fiche reliée au point, trois faits
 const Essentiel = ({ t, S }) => {
   const f = useCurrentFrame(), o = interpolate(f, [S.B - 4, S.B + 8, S.C - 8, S.C], [0, 1, 1, 0], CL), y = 1920 * 0.36;
+  // Card width measured from its lines: shifted left (or the monospace lines shrunk) so a long place name stays inside the frame
+  const ligne = (m) => Math.max(...[t.lieuFiche, t.coords].map((x) => mesure(x.toUpperCase(), `500 ${m}px Mono`, m * 0.1)));
+  let m = 30; while (m > 20 && ligne(m) > 1080 - 80 - 62) m -= 1;
+  const l = Math.ceil(Math.max(ligne(m), mesure(`M ${t.mag.toFixed(1)}`, "800 62px Bricolage"))) + 62, gx = Math.max(40, Math.min(480, 1080 - 40 - l));
   return (
     <div style={{ opacity: o }}>
       <div style={{ position: "absolute", left: 539, top: y + 40, width: 3, height: interpolate(f, [S.B, S.B + 12], [0, 120], CL), background: t.couleur }} />
-      <div style={{ position: "absolute", left: 480, top: y + 160, background: "rgba(11,20,28,.88)", border: `3px solid ${t.couleur}`, padding: "18px 28px 20px", display: "flex", flexDirection: "column", gap: 8, opacity: interpolate(f, [S.B + 10, S.B + 16], [0, 1], CL), whiteSpace: "nowrap" }}>
+      <div style={{ position: "absolute", left: gx, top: y + 160, background: "rgba(11,20,28,.88)", border: `3px solid ${t.couleur}`, padding: "18px 28px 20px", display: "flex", flexDirection: "column", gap: 8, opacity: interpolate(f, [S.B + 10, S.B + 16], [0, 1], CL), whiteSpace: "nowrap" }}>
         <div style={{ font: `800 62px/1 ${F.titre}`, color: t.couleur }}><Tape at={S.B + 14} texte={`M ${t.mag.toFixed(1)}`} /></div>
-        <div style={{ font: `500 30px ${F.mono}`, letterSpacing: ".1em", textTransform: "uppercase", color: "#e3eaef" }}><Tape at={S.B + 20} texte={t.lieuFiche} /></div>
-        <div style={{ font: `500 30px ${F.mono}`, letterSpacing: ".1em", textTransform: "uppercase", color: "#e3eaef" }}><Tape at={S.B + 32} texte={t.coords} /></div>
+        <div style={{ font: `500 ${m}px ${F.mono}`, letterSpacing: ".1em", textTransform: "uppercase", color: "#e3eaef" }}><Tape at={S.B + 20} texte={t.lieuFiche} /></div>
+        <div style={{ font: `500 ${m}px ${F.mono}`, letterSpacing: ".1em", textTransform: "uppercase", color: "#e3eaef" }}><Tape at={S.B + 32} texte={t.coords} /></div>
       </div>
       <div style={{ position: "absolute", left: 72, right: 72, top: 1150, display: "flex", flexDirection: "column", gap: 62 }}>
         <Fait at={S.B + 30} ico="clock" couleur={t.couleur} valeur={t.heure} libelle={`Local Time, ${t.date}`} />

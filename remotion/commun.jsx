@@ -18,7 +18,14 @@ export const usePolices = () => {
   return pret;
 };
 
-export const Logo = ({ taille = 44 }) => (
+// Width of a text in the loaded fonts (canvas), letter spacing in px; used to keep the place cards inside the image
+export const mesure = (texte, police, espace = 0) => {
+  const k = document.createElement("canvas").getContext("2d");
+  k.font = police; k.letterSpacing = `${espace}px`;
+  return k.measureText(texte).width;
+};
+
+export const Logo =({ taille = 44 }) => (
   <svg width={taille} height={taille} viewBox="0 0 24 24" fill="none" stroke="#f2a93b" strokeWidth="2" strokeLinecap="round">
     <rect width="24" height="24" rx="6" fill="#0b141c" stroke="none" /><circle cx="12" cy="12" r="8" />
     <path d="M4 12h16M12 4c2.7 2.8 2.7 13.2 0 16M12 4c-2.7 2.8-2.7 13.2 0 16" />
