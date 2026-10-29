@@ -44,6 +44,7 @@ jobs:
       - name: Detect and build
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          RESEAUX: ${{ inputs.reseaux }}
         run: node src/principal.mjs ${{ inputs.id }}
       - name: One release per alert (public direct downloads)
         if: hashFiles('sortie/*/issue.md') != ''

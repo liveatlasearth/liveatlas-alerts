@@ -27,7 +27,9 @@ const resume = [];
 let liste = [];
 if (manuel && !manuel.startsWith("v") && !manuel.startsWith("hebdo")) {
   const q = await json(`https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/${manuel}.geojson`);
-  liste = [{ id: manuel, mag: q.properties.mag, lieu: q.properties.place, temps: q.properties.time, reseaux: ["x", "instagram", "facebook", "reel"] }];
+  // Manual run: only what was asked (RESEAUX, e.g. "instagram,facebook"), so a reel and its narration are not made for nothing; empty = everything (preview)
+  const demande = (process.env.RESEAUX ?? "").split(",").map((r) => r.trim()).filter((r) => ["x", "instagram", "facebook", "reel"].includes(r));
+  liste = [{ id: manuel, mag: q.properties.mag, lieu: q.properties.place, temps: q.properties.time, reseaux: demande.length ? demande : ["x", "instagram", "facebook", "reel"] }];
 } else if (!manuel) {
   liste = await detecter(etat, maintenant);
   // First run: remember what is already in the feed without posting it (no flood of old quakes)
