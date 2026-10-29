@@ -3,7 +3,7 @@
 // Triggers (config/seuils.json): a new eruption, or an alert level raised to USGS orange or red, JMA level 3+, GeoNet level 3+.
 // Never a simple VAAC ash advisory.
 import { join } from "node:path";
-import { COMPTES, ecrireJson, json, lireJson, RACINE, variante } from "./commun.mjs";
+import { ajusterX, COMPTES, ecrireJson, json, lireJson, RACINE, variante } from "./commun.mjs";
 import { geoAutour } from "./donnees.mjs";
 
 const SITE = "https://www.liveatlas.earth", HASHTAGS = lireJson("config", "hashtags.json");
@@ -103,7 +103,7 @@ export function textesVolcan(d) {
   ];
   const source = sourceJma ? "\nSource: JMA" : "";
   const legendes = {
-    x: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${source}\n\n${u([local, ...lieux, "#Volcano", v1])}`,
+    x: ajusterX(`${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${source}\n\n`, u([local, ...lieux, "#Volcano", v1]).split(" "), [local, "#Volcano"]),
     instagram: `${titre}\n\n${lignes.join("\n")}\n\n🗺️ Live Map, Link in Bio${source}\n\n${u([local, ...lieux, "#Volcano", v1, v2, large])}`,
     facebook: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${source}\n\n${u([local, ...lieux.slice(0, d.region ? 3 : 2), "#Volcano"])}`,
   };

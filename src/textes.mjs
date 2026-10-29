@@ -2,7 +2,7 @@
 // Rules (Live Atlas templates, Oct 2026): Title Case labels, miles first then km, local time, no source line, no disclaimer,
 // calm wording, nothing that is not in the USGS data.
 import { geoContains } from "d3-geo";
-import { classe, COMPTES, kmEnMi, lireJson, NOM_MMI, nf, ROMAIN, variante } from "./commun.mjs";
+import { ajusterX, classe, COMPTES, kmEnMi, lireJson, NOM_MMI, nf, ROMAIN, variante } from "./commun.mjs";
 const HASHTAGS = lireJson("config", "hashtags.json");
 import { auxUSA } from "./detecter.mjs";
 
@@ -70,7 +70,7 @@ export function textes(d) {
   ];
   const contexte = d.mag >= 6 ? "\n\nAftershocks are common after a quake this size." : "";
   const legendes = {
-    x: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${lien}\n\n${hX}`,
+    x: ajusterX(`${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${lien}\n\n`, hX.split(" "), [local, "#Earthquake"]),
     instagram: `${titre}\n\n${long.join("\n")}${contexte}\n\n🗺️ Live Map, Link in Bio\n\n${hIG}`,
     facebook: `${titre}\n\n${long.join("\n")}${contexte}\n\n👇 Live Map\n${lien}\n\n${hFB}`,
   };

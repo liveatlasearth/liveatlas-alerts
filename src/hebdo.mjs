@@ -5,7 +5,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { geoDistance } from "d3-geo";
-import { json, kmEnMi, lireJson, nf, RACINE, variante } from "./commun.mjs";
+import { ajusterX, json, kmEnMi, lireJson, nf, RACINE, variante } from "./commun.mjs";
 
 const HASHTAGS = lireJson("config", "hashtags.json").seismes;
 const ETATS_US = { CA: "California", NV: "Nevada", OR: "Oregon", WA: "Washington", UT: "Utah", ID: "Idaho", MT: "Montana", WY: "Wyoming", NM: "New Mexico", AZ: "Arizona", TX: "Texas", OK: "Oklahoma", HI: "Hawaii", AK: "Alaska", CO: "Colorado", KS: "Kansas" };
@@ -88,7 +88,7 @@ export function textesHebdo(d) {
     type: "seisme", lien: "https://www.liveatlas.earth/", narration,
     legendes: {
       instagram: `${titre}\n\n${lignes.join("\n")}\n\n🗺️ Live Map, Link in Bio\n\n${["#Earthquake", s1, ...lieux, s2, large].join(" ")}`,
-      x: `${titre.replace(/, \d{4}$/, "")}\n\n${lignes.join("\n")}\n\n👇 Live Map\nhttps://www.liveatlas.earth/\n\n${["#Earthquake", s1, ...lieux.slice(0, 2)].join(" ")}`,
+      x: ajusterX(`${titre.replace(/, \d{4}$/, "")}\n\n${lignes.join("\n")}\n\n👇 Live Map\nhttps://www.liveatlas.earth/\n\n`, ["#Earthquake", s1, ...lieux.slice(0, 2)], ["#Earthquake"]),
       facebook: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\nhttps://www.liveatlas.earth/\n\n${["#Earthquake", s1, ...lieux].join(" ")}`,
     },
   };
