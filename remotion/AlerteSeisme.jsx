@@ -215,7 +215,7 @@ const Essentiel = ({ t, S }) => {
       </div>
       <div style={{ position: "absolute", left: 72, right: 72, top: 1150, display: "flex", flexDirection: "column", gap: 62 }}>
         <Fait at={S.B + 30} ico="clock" couleur={t.couleur} valeur={t.heure} libelle={`Local Time, ${t.date}`} />
-        <Fait at={S.B + 52} ico="depth" couleur={t.couleur} valeur={<><Compte at={S.B + 52} a={t.profMi} dur={24} /> mi</>} libelle={`Depth (${t.profKm} km)`} />
+        <Fait at={S.B + 52} ico="depth" couleur={t.couleur} valeur={t.profFixee ? "Shallow" : <><Compte at={S.B + 52} a={t.profMi} dur={24} /> mi</>} libelle={t.profLibelle ?? `Depth (${t.profKm} km)`} />
         <Fait at={S.B + 74} ico="users" couleur={t.couleur} valeur={<Compte at={S.B + 74} a={t.exposes} dur={34} />} libelle="People Felt Strong Shaking" />
       </div>
     </div>

@@ -54,7 +54,9 @@ export async function donnees(id) {
   const ex = expo?.population_exposure?.aggregated_exposure ?? [];
   const sortie = {
     id, mag: +P.mag.toFixed(1), lieu: P.place, pays: pays(P.place), temps: P.time, fuseau: fuseau(lat, lon)[0] ?? "UTC", lon, lat,
-    prof_km: +prof.toFixed(1), prof_mi: kmEnMi(prof), pager: P.alert, ressenti: P.felt, mmi_max: P.mmi, tsunami: P.tsunami, url: P.url,
+    prof_km: +prof.toFixed(1), prof_mi: kmEnMi(prof),
+    // Depth set by the USGS analyst (often 10 km) when the data can't resolve it yet: shown as not measured, never as a figure
+    prof_fixee: pr.origin?.[0]?.properties?.["depth-type"] === "operator assigned", pager: P.alert, ressenti: P.felt, mmi_max: P.mmi, tsunami: P.tsunami, url: P.url,
     exposition: ex, exposes_vi_plus: ex.slice(5).reduce((a, b) => a + b, 0), villes: listeVilles,
     shakemap: cont && { type: "FeatureCollection", features: cont.features.filter((f) => f.properties.value % 1 === 0).map((f) => ({ type: "Feature", properties: { mmi: f.properties.value }, geometry: { type: f.geometry.type, coordinates: arr(3)(f.geometry.coordinates) } })) },
     satellite: { ...sat, credit: "NASA GIBS" }, geo,

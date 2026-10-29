@@ -106,25 +106,27 @@ const Fiche = ({ t, x, y, W, min }) => {
     </>
   );
 };
-const Fait = ({ ico, couleur, valeur, libelle }) => (
-  <div style={{ display: "grid", gridTemplateColumns: "auto auto", columnGap: 14, rowGap: 4, alignItems: "center", justifyContent: "start" }}>
-    <Ico n={ico} taille={46} couleur={couleur} /><b style={{ font: `800 62px/1 ${F.titre}`, color: "#fff", whiteSpace: "nowrap" }}>{valeur}</b>
-    <span /><span style={{ font: `600 30px ${F.texte}`, color: "#c9d6df", whiteSpace: "nowrap" }}>{libelle}</span>
+// e: scale of the facts row, below 1 only when the row would not fit (long label such as "Depth, Not Yet Measured")
+const largeurFait = ([, valeur, libelle]) => 46 + 14 + Math.max(mesure(valeur, "800 62px Bricolage"), mesure(libelle, "600 30px Plex"));
+const Fait = ({ ico, couleur, valeur, libelle, e = 1 }) => (
+  <div style={{ display: "grid", gridTemplateColumns: "auto auto", columnGap: 14 * e, rowGap: 4, alignItems: "center", justifyContent: "start" }}>
+    <Ico n={ico} taille={46 * e} couleur={couleur} /><b style={{ font: `800 ${62 * e}px/1 ${F.titre}`, color: "#fff", whiteSpace: "nowrap" }}>{valeur}</b>
+    <span /><span style={{ font: `600 ${30 * e}px ${F.texte}`, color: "#c9d6df", whiteSpace: "nowrap" }}>{libelle}</span>
   </div>
 );
 const Bloc = ({ t, largeur, style }) => {
   // Third fact only when there is data: USGS impact level, else felt reports (never a "0")
   const i = CLASSES.findIndex(([n]) => n === t.classe), dernier = t.pager ? ["gauge", t.pager[0].toUpperCase() + t.pager.slice(1), "Impact Level"] : t.ressenti ? ["users", String(t.ressenti), "Felt Reports"] : null;
+  const faits = [["clock", t.heure, t.libelleHeure ?? "Local Time"], ["depth", t.profFixee ? "Shallow" : `${t.profMi} mi`, t.profLibelle ?? `Depth (${t.profKm} km)`], ...(dernier ? [dernier] : [])];
+  const e = Math.min(1, largeur / (faits.reduce((a, x) => a + largeurFait(x), 0) + 36 * (faits.length - 1)));
   return (
     <div style={{ position: "absolute", display: "flex", flexDirection: "column", gap: 16, width: largeur, ...style }}>
       <span style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 12, background: t.couleur, color: "#0b141c", font: `800 34px ${F.titre}`, letterSpacing: ".04em", padding: "8px 24px", borderRadius: 40, marginBottom: 12 }}>
         <span style={{ width: 14, height: 14, borderRadius: 7, background: "#0b141c" }} />{t.classe}</span>
       <div style={{ font: `800 230px/.86 ${F.titre}`, letterSpacing: "-.04em", color: t.couleur, textShadow: `0 0 60px ${t.couleur}73` }}><span style={{ fontSize: ".42em", marginRight: 6 }}>M</span>{t.mag.toFixed(1)}</div>
       <div style={{ font: `700 ${taillePour(t.lieuLigne, 700, 56, largeur)}px/1.12 ${F.titre}`, color: "#fff", whiteSpace: "nowrap" }}>{t.lieuLigne}</div>
-      <div style={{ display: "flex", gap: 36, marginTop: 6 }}>
-        <Fait ico="clock" couleur={t.couleur} valeur={t.heure} libelle={t.libelleHeure ?? "Local Time"} />
-        <Fait ico="depth" couleur={t.couleur} valeur={`${t.profMi} mi`} libelle={`Depth (${t.profKm} km)`} />
-        {dernier && <Fait ico={dernier[0]} couleur={t.couleur} valeur={dernier[1]} libelle={dernier[2]} />}
+      <div style={{ display: "flex", gap: 36 * e, marginTop: 6 }}>
+        {faits.map(([ico, valeur, libelle]) => <Fait key={ico} ico={ico} couleur={t.couleur} valeur={valeur} libelle={libelle} e={e} />)}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 6, marginTop: 10 }}>
         {CLASSES.map(([n, c], j) => <i key={n} style={{ height: 10, borderRadius: 5, background: c, opacity: j === i ? 1 : 0.25, boxShadow: j === i ? `0 0 18px ${c}` : "none" }} />)}

@@ -26,6 +26,9 @@ export function textes(d) {
   const pres = m ? `near ${ref}` : `${article} ${d.lieu}`;
   const region = ref ?? d.lieu.replace(/ region$/, "");
   const peuProfond = d.prof_km < 70, enMer = !surTerre(d.lon, d.lat);
+  // Depth fixed by the USGS analyst (not computed): "Shallow, Not Yet Measured" (choice of the user, 29/10/2026); a fixed deep value stays a figure, marked as estimated
+  const profFixee = d.prof_fixee && peuProfond, profEstimee = d.prof_fixee && !peuProfond;
+  const profTexte = profFixee ? "Shallow, Not Yet Measured" : `${d.prof_mi} mi (${Math.round(d.prof_km)} km)${profEstimee ? ", Estimated" : ""}`;
   // Open ocean with no town nearby: local time means nothing there, the time is given in UTC
   const horaireMer = !m && enMer, moisUtc = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" }).format(new Date(d.temps));
   const pays = d.pays, usa = auxUSA(d.lieu), lien = COMPTES.seismes.lien_seisme.replace("{id}", id).replace("{lon}", d.lon.toFixed(2)).replace("{lat}", d.lat.toFixed(2));
@@ -50,7 +53,7 @@ export function textes(d) {
   const lignes = [
     `📍 ${ligneLieu}`,
     horaireMer ? `🕐 ${utc} UTC, ${moisUtc}` : `🕐 ${heure} Local, ${mois} ${jour}`,
-    `⬇️ Depth: ${d.prof_mi} mi (${Math.round(d.prof_km)} km)`,
+    `⬇️ Depth: ${profTexte}`,
     ...(mmiMax ? [`📳 Strongest Shaking: ${ROMAIN[mmiMax]} (${NOM_MMI[mmiMax]})`] : []),
   ];
   const long = [
@@ -58,7 +61,7 @@ export function textes(d) {
     `📍 Location: ${ligneLieu}`,
     `📅 Date: ${moisLong} ${jour}, ${annee}`,
     horaireMer ? `🕐 Time: ${utc} UTC` : `🕐 Time: ${heure} Local (${utc} UTC)`,
-    `⬇️ Depth: ${d.prof_mi} mi (${Math.round(d.prof_km)} km)`,
+    `⬇️ Depth: ${profTexte}`,
     ...(mmiMax ? [`📳 Strongest Shaking: ${ROMAIN[mmiMax]} (${NOM_MMI[mmiMax]})`] : []),
     ...(exposes ? [`👥 Strong Shaking or More: About ${nf.format(exposes)} People`] : []),
     ...(ville && mmiVille >= 2 ? [`🏙️ Nearest City: ${ville.nom}, ${ville.mi} mi (${ville.km} km) ${ville.dir}, ${NOM_MMI[mmiVille]} Shaking (${ROMAIN[mmiVille]})`] : []),
@@ -92,7 +95,8 @@ export function textes(d) {
   const ecran = {
     classe: c.nom, couleur: c.couleur, mag: d.mag, region, zone: null, lieuFiche: ref ?? region, lieuLigne: ligneLieu,
     coords: `${Math.abs(d.lat).toFixed(2)}°${d.lat >= 0 ? "N" : "S"} ${Math.abs(d.lon).toFixed(2)}°${d.lon >= 0 ? "E" : "W"}`,
-    date: horaireMer ? moisUtc : `${mois} ${jour}`, dateLongue: `${mois} ${jour}, ${annee}`, heure: horaireMer ? utc : heure, libelleHeure: horaireMer ? "UTC" : "Local Time", profMi: d.prof_mi, profKm: Math.round(d.prof_km), exposes: exposes ?? 0,
+    date: horaireMer ? moisUtc : `${mois} ${jour}`, dateLongue: `${mois} ${jour}, ${annee}`, heure: horaireMer ? utc : heure, libelleHeure: horaireMer ? "UTC" : "Local Time", profMi: d.prof_mi, profKm: Math.round(d.prof_km), profFixee,
+    profLibelle: profFixee ? "Depth, Not Yet Measured" : `Depth${profEstimee ? ", Estimated" : ""} (${Math.round(d.prof_km)} km)`, exposes: exposes ?? 0,
     ressenti: d.ressenti ?? 0, pager: d.pager ?? null, mmiMax, satFichier: d.satellite.fichier,
     satTitre: d.satellite.jour ? ["The Day ", "After"] : ["From ", "Space"], satLigne: d.satellite.jour ? `NASA Terra Satellite, ${new Date(d.satellite.jour + "T00:00:00Z").toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}` : "NASA Satellite View",
     lignes: lignesSecousse.slice(0, 4), conseil: conseil.cas,
