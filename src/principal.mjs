@@ -72,7 +72,7 @@ if (!manuel || manuel.startsWith("v")) try {
     if (!v) throw new Error(`Volcan ${manuel} absent des données du site (seuls les volcans en éruption ou en alerte y sont)`);
     // By hand: the current state of the volcano, stated as it is ("Is Erupting", "at Alert Level 3"), never an invented raise
     const n = niveaux(v), cas = v.statut === "eruption" && v.depuis && maintenant - Date.parse(v.depuis) < 60 * 86400e3 ? "eruption"
-      : n.jma >= 3 ? "jma" : n.usgs >= 3 ? "usgs" : n.geonet >= 3 ? "geonet" : "etat";
+      : n.jma >= 3 ? "jma" : n.usgs >= 3 ? "usgs" : n.geonet >= 3 ? "geonet" : n.phivolcs >= 3 ? "phivolcs" : "etat";
     listeV = [{ id: manuel, volcan: v, cas, reseaux: ["x", "instagram", "facebook"] }];
   } else {
     if (!etatV._init) { memoriser(volcans, etatV); etatV._init = new Date().toISOString(); console.log("Volcans : initialisation, rien publié"); }

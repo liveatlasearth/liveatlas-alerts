@@ -1,6 +1,7 @@
 // Volcano alerts for @LiveAtlasErupts, from the public Live Atlas data (www.liveatlas.earth/donnees/evenements.json, refreshed
 // every hour from the Smithsonian GVP weekly report, USGS, JMA and GeoNet alert levels) and the public search index (English names and pages).
-// Triggers (config/seuils.json): a new eruption, or an alert level raised to USGS orange or red, JMA level 3+, GeoNet level 3+.
+// Triggers (config/seuils.json): a new eruption, or an alert level raised to USGS orange or red, JMA level 3+, GeoNet level 3+,
+// PHIVOLCS level 3+ (Philippines, read from its bulletin page, added Oct 30, 2026 after Mayon was raised to Level 3 and missed).
 // Never a simple VAAC ash advisory.
 import { join } from "node:path";
 import { ajusterX, COMPTES, ecrireJson, json, lireJson, RACINE, variante } from "./commun.mjs";
@@ -20,11 +21,35 @@ export const niveaux = (v) => {
     // are keyword warnings for volcanoes without levels: shown with their own words, never treated as a level
     if (a.organisme === "JMA" && a.code >= 11 && a.code <= 15) n.jma = a.code - 10;
     if (a.organisme === "GeoNet") n.geonet = +a.niveau || 0;
+    if (a.organisme === "PHIVOLCS") n.phivolcs = a.niveau; // absent when the PHIVOLCS page did not answer: the remembered level stays
   }
   return n;
 };
 
-export async function lireVolcans() { return (await json(`${SITE}/donnees/evenements.json`)).volcans; }
+export async function lireVolcans() { return ajouterPhivolcs((await json(`${SITE}/donnees/evenements.json`)).volcans); }
+
+// PHIVOLCS alert levels (0 to 5) of the five monitored Philippine volcanoes: no feed, only the "Alert Level Status" bar of the bulletin page
+// ("Mayon - 3"). Volcanoes missing from the site events (not erupting: Bulusan, Pinatubo) are added from the public volcano map data.
+const PHIVOLCS = "https://wovodat.phivolcs.dost.gov.ph/bulletin/list-of-bulletin";
+async function ajouterPhivolcs(volcans) {
+  let page = "";
+  try { const r = await fetch(PHIVOLCS, { headers: { "user-agent": "liveatlas-alerts (+https://www.liveatlas.earth)" }, signal: AbortSignal.timeout(20000) }); if (r.ok) page = await r.text(); } catch {}
+  const liste = [...page.matchAll(/class="[^"]*scroll-item"\s*>\s*([^<]+?)\s*-\s*(\d)\s*</g)].map(([, nom, n]) => [nom.trim(), +n]);
+  if (!liste.length) { console.log("PHIVOLCS : niveaux indisponibles, on garde ceux en mémoire"); return volcans; }
+  let carte = null;
+  for (const [nom, niveau] of liste) {
+    let v = volcans.find((x) => x.pays === "Philippines" && x.nom === nom);
+    if (!v) {
+      carte ??= await json(`${SITE}/donnees/volcans-carte.json`); // [id, name, lon, lat, last eruption, type, …, slug]
+      const c = carte.find((x) => x[1] === nom && x[2] > 116 && x[2] < 127 && x[3] > 4 && x[3] < 21);
+      if (!c) { console.log(`PHIVOLCS : ${nom} absent de la carte des volcans`); continue; }
+      v = { id: c[0], nom: c[1], slug: c[7], pays: "Philippines", lon: c[2], lat: c[3], statut: "repos", depuis: null, alertes: [] };
+      volcans.push(v);
+    }
+    v.alertes = [...(v.alertes ?? []), { organisme: "PHIVOLCS", niveau, lien: PHIVOLCS }];
+  }
+  return volcans;
+}
 
 // etat: { <id>: { eruption, usgs, jma, geonet, publie: { x, instagram, facebook } } }
 export function detecterVolcans(volcans, etat, maintenant = Date.now()) {
@@ -37,6 +62,7 @@ export function detecterVolcans(volcans, etat, maintenant = Date.now()) {
     else if (n.usgs >= 3 && n.usgs > avant.usgs) cas = "usgs";
     else if (n.jma >= 3 && n.jma > avant.jma) cas = "jma";
     else if (n.geonet >= 3 && n.geonet > avant.geonet) cas = "geonet";
+    else if (n.phivolcs >= 3 && n.phivolcs > (avant.phivolcs ?? 0)) cas = "phivolcs";
     if (cas) aFaire.push({ id: `v${v.id}`, volcan: v, cas, reseaux: ["x", "instagram", "facebook"] });
   }
   return aFaire;
@@ -57,8 +83,8 @@ async function region(lat, lon, pays) {
 export async function donneesVolcan(v, cas, manuel = false) {
   const index = await json(`${SITE}/donnees/recherche.json`), entree = (Array.isArray(index) ? index : Object.values(index)).find((x) => Array.isArray(x) && x[4] === "v" && x[2] === `/fr/volcans/${v.slug}/`);
   const nom = entree?.[1] ?? v.nom, lien = entree ? SITE + entree[3] : COMPTES.volcans.lien_volcans, pays = paysEn(v.pays);
-  const n = niveaux(v), jma = v.alertes?.find((a) => a.organisme === "JMA"), usgs = v.alertes?.find((a) => a.organisme === "USGS"), geonet = v.alertes?.find((a) => a.organisme === "GeoNet");
-  const d = { id: `v${v.id}`, gvp: v.id, manuel, nom, pays, region: await region(v.lat, v.lon, pays), lon: v.lon, lat: v.lat, depuis: v.depuis, statut: v.statut, cas, lien, n, jma, usgs, geonet, geo: geoAutour(v.lon, v.lat) };
+  const n = niveaux(v), jma = v.alertes?.find((a) => a.organisme === "JMA"), usgs = v.alertes?.find((a) => a.organisme === "USGS"), geonet = v.alertes?.find((a) => a.organisme === "GeoNet"), phivolcs = v.alertes?.find((a) => a.organisme === "PHIVOLCS");
+  const d = { id: `v${v.id}`, gvp: v.id, manuel, nom, pays, region: await region(v.lat, v.lon, pays), lon: v.lon, lat: v.lat, depuis: v.depuis, statut: v.statut, cas, lien, n, jma, usgs, geonet, phivolcs, geo: geoAutour(v.lon, v.lat) };
   ecrireJson(join(RACINE, "public", "evenements", d.id, "donnees.json"), d, false);
   return d;
 }
@@ -69,9 +95,11 @@ const tagLocal = (s) => "#" + s.replace(/[\s'’.,\-]/g, "");
 export function textesVolcan(d) {
   const court = d.nom.replace(/\s*\(.*\)$/, ""), annee = d.depuis ? d.depuis.slice(0, 4) : null;
   // Alert line and pill, from the agency that raised it
-  let pastille, alerte, emoji, couleur, sourceJma = false;
+  let pastille, alerte, emoji, couleur, source = null;
   if (d.cas === "eruption") { pastille = "New Eruption"; emoji = "🌋"; couleur = "#FF6A4D"; }
-  if (d.jma && (d.cas === "jma" || d.cas === "etat" || (d.cas === "eruption" && d.n.jma))) { const m = d.jma.niveau_en?.match(/\(([^)]+)\)/); alerte = d.n.jma ? `Level ${d.n.jma} of 5${m ? ` (${m[1]})` : ""}` : d.jma.niveau_en; sourceJma = true; }
+  if (d.jma && (d.cas === "jma" || d.cas === "etat" || (d.cas === "eruption" && d.n.jma))) { const m = d.jma.niveau_en?.match(/\(([^)]+)\)/); alerte = d.n.jma ? `Level ${d.n.jma} of 5${m ? ` (${m[1]})` : ""}` : d.jma.niveau_en; source = "JMA"; }
+  // PHIVOLCS: the number only, its wording differs from one volcano to another (Mayon "Increased Tendency…", Taal "Magmatic Unrest")
+  if (d.phivolcs && (d.cas === "phivolcs" || d.cas === "etat" || (d.cas === "eruption" && d.n.phivolcs))) { alerte = `Level ${d.n.phivolcs} of 5`; source = "PHIVOLCS"; }
   if (d.usgs && (d.cas === "usgs" || d.cas === "etat" || (d.cas === "eruption" && d.n.usgs))) alerte = `${d.usgs.couleur[0] + d.usgs.couleur.slice(1).toLowerCase()} (${d.usgs.niveau[0] + d.usgs.niveau.slice(1).toLowerCase()})`;
   if (d.geonet && (d.cas === "geonet" || d.cas === "etat" || (d.cas === "eruption" && d.n.geonet))) alerte = `Level ${d.n.geonet}${d.geonet.texte ? ` (${d.geonet.texte.replace(/\.$/, "")})` : ""}`;
   if (d.cas === "etat") { pastille = d.statut === "eruption" ? "Erupting Now" : "Volcanic Unrest"; emoji = "🌋"; couleur = "#FF6A4D"; }
@@ -79,7 +107,7 @@ export function textesVolcan(d) {
     const c = d.usgs.couleur; emoji = { YELLOW: "🟡", ORANGE: "🟠", RED: "🔴" }[c] ?? "🟠"; couleur = { YELLOW: "#F2D14B", ORANGE: "#F2A93B", RED: "#E5303A" }[c] ?? "#F2A93B";
     pastille = `USGS ${c[0] + c.slice(1).toLowerCase()} Alert`;
   } else if (d.cas !== "eruption") {
-    const niv = d.cas === "jma" ? d.n.jma : d.n.geonet; // 3 orange, 4 red, 5 purple
+    const niv = d.cas === "jma" ? d.n.jma : d.cas === "phivolcs" ? d.n.phivolcs : d.n.geonet; // 3 orange, 4 red, 5 purple
     emoji = niv >= 5 ? "🟣" : niv >= 4 ? "🔴" : "🟠"; couleur = niv >= 5 ? "#B0124A" : niv >= 4 ? "#E5303A" : "#F2A93B";
     pastille = `Alert Level ${niv}`;
   }
@@ -101,11 +129,11 @@ export function textesVolcan(d) {
     ...(alerte ? [`⚠️ Alert: ${alerte}`] : []),
     ...(annee ? [`📅 ${d.cas === "eruption" ? "Eruption Began" : "Erupting Since"}: ${d.cas === "eruption" ? new Date(d.depuis + "T00:00:00Z").toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }) : annee}`] : []),
   ];
-  const source = sourceJma ? "\nSource: JMA" : "";
+  const sourceL = source ? `\nSource: ${source}` : "";
   const legendes = {
-    x: ajusterX(`${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${source}\n\n`, u([local, ...lieux, "#Volcano", v1]).split(" "), [local, "#Volcano"]),
-    instagram: `${titre}\n\n${lignes.join("\n")}\n\n🗺️ Live Map, Link in Bio${source}\n\n${u([local, ...lieux, "#Volcano", v1, v2, large])}`,
-    facebook: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${source}\n\n${u([local, ...lieux.slice(0, d.region ? 3 : 2), "#Volcano"])}`,
+    x: ajusterX(`${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${sourceL}\n\n`, u([local, ...lieux, "#Volcano", v1]).split(" "), [local, "#Volcano"]),
+    instagram: `${titre}\n\n${lignes.join("\n")}\n\n🗺️ Live Map, Link in Bio${sourceL}\n\n${u([local, ...lieux, "#Volcano", v1, v2, large])}`,
+    facebook: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${sourceL}\n\n${u([local, ...lieux.slice(0, d.region ? 3 : 2), "#Volcano"])}`,
   };
   const ecran = {
     type: "volcan", couleur, pastille, nom: court, pays: ou || null, coords, date: new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }),
@@ -114,6 +142,7 @@ export function textesVolcan(d) {
       ...(d.jma ? [d.n.jma ? ["alert", `${d.n.jma} of 5`, "JMA Alert Level"] : ["alert", d.jma.niveau_en, "JMA Warning"]] : []),
       ...(d.usgs ? [["plane", d.usgs.couleur[0] + d.usgs.couleur.slice(1).toLowerCase(), "Aviation Color Code"], ["alert", d.usgs.niveau[0] + d.usgs.niveau.slice(1).toLowerCase(), "USGS Alert Level"]] : []),
       ...(d.geonet ? [["alert", `Level ${d.n.geonet}`, "GeoNet Alert Level"]] : []),
+      ...(d.phivolcs ? [["alert", `${d.n.phivolcs} of 5`, "Alert Level"]] : []),
     ].slice(0, 2),
   };
   return { ecran, legendes, lien: d.lien, type: "volcan" };
