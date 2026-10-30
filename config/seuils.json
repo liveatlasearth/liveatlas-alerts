@@ -155,7 +155,7 @@
   },
   "volcans": {
     "compte": "volcans",
-    "source": "Smithsonian GVP (rapport hebdomadaire) + niveaux d'alerte USGS, JMA, GeoNet + avis de cendres VAAC (déjà dans /donnees/evenements.json) + niveaux PHIVOLCS (Philippines, barre « Alert Level Status » de wovodat.phivolcs.dost.gov.ph/bulletin/list-of-bulletin, ajoutés le 30/10/2026)",
+    "source": "Smithsonian GVP (rapport hebdomadaire) + niveaux d'alerte USGS, JMA, GeoNet + avis de cendres VAAC (déjà dans /donnees/evenements.json) + observatoires nationaux lus directement depuis le 30/10/2026 (src/observatoires.mjs) : PHIVOLCS Philippines, Icelandic Met Office, VMGD Vanuatu, IGP Pérou, KVERT Kamtchatka, INGV Italie, OVPF-IPGP La Réunion",
     "declencheurs": [
       {
         "cas": "nouvelle éruption d'un volcan qui n'était pas en éruption",
@@ -166,7 +166,7 @@
         ]
       },
       {
-        "cas": "hausse du niveau d'alerte : USGS orange ou rouge, JMA niveau 3 et plus, GeoNet niveau 3 et plus, PHIVOLCS niveau 3 et plus",
+        "cas": "hausse du niveau d'alerte : USGS orange ou rouge, JMA niveau 3 et plus, GeoNet niveau 3 et plus, PHIVOLCS 3 et plus (sur 5), VMGD 3 et plus (sur 5), Icelandic Met Office orange et plus, IGP naranja et plus, KVERT code aviation orange et plus, INGV code aviation rouge seulement (un post par volcan et par semaine au plus), OVPF Alerte 1 et plus. Un niveau vu pour la première fois est seulement mémorisé",
         "reseaux": [
           "x",
           "instagram",
