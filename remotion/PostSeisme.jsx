@@ -106,7 +106,7 @@ const Fiche = ({ t, x, y, W, min }) => {
     </>
   );
 };
-// e: scale of the facts row, below 1 only when the row would not fit (long label such as "Depth, Not Yet Measured")
+// e: scale of the facts row, below 1 only when the row would not fit (long label such as "Depth, Not Determined")
 const largeurFait = ([, valeur, libelle]) => 46 + 14 + Math.max(mesure(valeur, "800 62px Bricolage"), mesure(libelle, "600 30px Plex"));
 const Fait = ({ ico, couleur, valeur, libelle, e = 1 }) => (
   <div style={{ display: "grid", gridTemplateColumns: "auto auto", columnGap: 14 * e, rowGap: 4, alignItems: "center", justifyContent: "start" }}>

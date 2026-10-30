@@ -28,9 +28,9 @@ export function textes(d) {
   const pres = m ? `near ${ref}` : dirige ? d.lieu : `${article} ${d.lieu}`;
   const region = ref ?? titreLieu(d.lieu.replace(/ region$/, ""));
   const peuProfond = d.prof_km < 70, enMer = !surTerre(d.lon, d.lat);
-  // Depth fixed by the USGS analyst (not computed): "Shallow, Not Yet Measured" (choice of the user, 29/10/2026); a fixed deep value stays a figure, marked as estimated
+  // Depth fixed by the USGS analyst (not computed): "Shallow, Not Determined" (choice of the user, 29/10/2026; "Not Yet Measured" until 30/10: most fixed depths stay fixed after review); a fixed deep value stays a figure, marked as estimated
   const profFixee = d.prof_fixee && peuProfond, profEstimee = d.prof_fixee && !peuProfond;
-  const profTexte = profFixee ? "Shallow, Not Yet Measured" : `${d.prof_mi} mi (${Math.round(d.prof_km)} km)${profEstimee ? ", Estimated" : ""}`;
+  const profTexte = profFixee ? "Shallow, Not Determined" : `${d.prof_mi} mi (${Math.round(d.prof_km)} km)${profEstimee ? ", Estimated" : ""}`;
   // Open ocean with no town nearby: local time means nothing there, the time is given in UTC
   const horaireMer = !m && enMer, moisUtc = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" }).format(new Date(d.temps));
   const pays = d.pays, usa = auxUSA(d.lieu), lien = COMPTES.seismes.lien_seisme.replace("{id}", id).replace("{lon}", d.lon.toFixed(2)).replace("{lat}", d.lat.toFixed(2));
@@ -98,7 +98,7 @@ export function textes(d) {
     classe: c.nom, couleur: c.couleur, mag: d.mag, region, zone: null, lieuFiche: ref ?? region, lieuLigne: ligneLieu,
     coords: `${Math.abs(d.lat).toFixed(2)}°${d.lat >= 0 ? "N" : "S"} ${Math.abs(d.lon).toFixed(2)}°${d.lon >= 0 ? "E" : "W"}`,
     date: horaireMer ? moisUtc : `${mois} ${jour}`, dateLongue: `${mois} ${jour}, ${annee}`, heure: horaireMer ? utc : heure, libelleHeure: horaireMer ? "UTC" : "Local Time", profMi: d.prof_mi, profKm: Math.round(d.prof_km), profFixee,
-    profLibelle: profFixee ? "Depth, Not Yet Measured" : `Depth${profEstimee ? ", Estimated" : ""} (${Math.round(d.prof_km)} km)`, exposes: exposes ?? 0,
+    profLibelle: profFixee ? "Depth, Not Determined" : `Depth${profEstimee ? ", Estimated" : ""} (${Math.round(d.prof_km)} km)`, exposes: exposes ?? 0,
     ressenti: d.ressenti ?? 0, pager: d.pager ?? null, mmiMax, satFichier: d.satellite.fichier,
     satTitre: d.satellite.jour ? ["The Day ", "After"] : ["From ", "Space"], satLigne: d.satellite.jour ? `NASA Terra Satellite, ${new Date(d.satellite.jour + "T00:00:00Z").toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}` : "NASA Satellite View",
     lignes: lignesSecousse.slice(0, 4), conseil: conseil.cas,

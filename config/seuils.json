@@ -117,10 +117,10 @@
       "regle": "On publie avec l'identifiant et la magnitude de l'USGS (lien direct vers la carte). Si une autre agence donne une magnitude différente de 0,5 ou plus, on attend 10 minutes de plus et on reprend les valeurs à jour. Si l'USGS n'a toujours rien après 20 minutes alors que l'EMSC et le GFZ ont un M6 et plus, on publie avec la source EMSC."
     },
     "attente_avant_post_minutes": 20,
-    "attente_magnitude_finale_minutes": 60,
+    "attente_magnitude_finale_minutes": 30,
     "magnitude_finale_des": 5.5,
     "attente_reseau_regional_minutes": 30,
-    "_attente": "Décision du 30/10/2026, sur nos 35 premiers posts comparés aux valeurs finales de l'USGS : jamais avant 20 min après le séisme (5 min avant). Si la magnitude est encore une magnitude rapide (mb, ml, md…) à partir de M5,5, on attend la magnitude de moment (Mww, Mwr…) jusqu'à 60 min (Barcelona, Philippines : M5,7 mb à 14 min, M5,8 Mww à 54 min). Si la solution vient d'un réseau régional américain (ak, nc, pr…), on attend jusqu'à 30 min celle de l'USGS (False Pass : M4,8 du réseau d'Alaska à 13 min, M5,0 de l'USGS à 20 min). La moitié des M5+ gardent leur magnitude mb pour toujours, d'où les plafonds."
+    "_attente": "Décision du 30/10/2026, sur nos 35 premiers posts comparés aux valeurs finales de l'USGS : jamais avant 20 min après le séisme (5 min avant). Si la magnitude est encore une magnitude rapide (mb, ml, md…) à partir de M5,5, on attend la magnitude de moment (Mww, Mwr…) jusqu'à 30 min (60 min le 30/10 au matin, ramené à 30 : l'utilisateur préfère la rapidité, une alerte n'a pas à être exacte au dixième près ; Barcelona, Philippines : M5,7 mb à 14 min, M5,8 Mww à 54 min). Si la solution vient d'un réseau régional américain (ak, nc, pr…), on attend jusqu'à 30 min celle de l'USGS (False Pass : M4,8 du réseau d'Alaska à 13 min, M5,0 de l'USGS à 20 min). La moitié des M5+ gardent leur magnitude mb pour toujours, d'où les plafonds."
   },
   "tsunamis": {
     "compte": "seismes",
