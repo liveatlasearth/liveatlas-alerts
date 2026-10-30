@@ -3,13 +3,15 @@
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "ingv": 2
  },
  "211060": {
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "ingv": 3
  },
  "222120": {
   "eruption": true,
@@ -28,6 +30,13 @@
   "usgs": 0,
   "jma": 0,
   "geonet": 0
+ },
+ "233020": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "ovpf": 1
  },
  "234010": {
   "eruption": true,
@@ -77,17 +86,54 @@
   "jma": 0,
   "geonet": 0
  },
+ "257010": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "vmgd": 1
+ },
+ "257020": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "vmgd": 2
+ },
  "257030": {
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "vmgd": 3
+ },
+ "257040": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "vmgd": 3
+ },
+ "257050": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "vmgd": 2
+ },
+ "257060": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "vmgd": 1
  },
  "257100": {
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "vmgd": 2
  },
  "261140": {
   "eruption": true,
@@ -129,19 +175,39 @@
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "phivolcs": 2
+ },
+ "273010": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "phivolcs": 1
  },
  "273030": {
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "postes": {
+   "phivolcs": 1793345638209
+  },
+  "phivolcs": 3
  },
  "273070": {
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "phivolcs": 1
+ },
+ "273083": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "phivolcs": 0
  },
  "282030": {
   "eruption": true,
@@ -221,23 +287,320 @@
   "jma": 2,
   "geonet": 0
  },
+ "290030": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290040": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290050": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290190": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290220": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290240": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290250": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290260": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290270": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290290": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290320": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290331": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290340": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
  "290360": {
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "kvert": 1
+ },
+ "290380": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "290390": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300010": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300020": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300022": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300030": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300040": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300050": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300053": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300060": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300070": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300080": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300090": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300100": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300120": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300130": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300140": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300160": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300180": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
  },
  "300190": {
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "kvert": 1
+ },
+ "300200": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300210": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300220": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300221": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300230": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300250": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 1
+ },
+ "300260": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 1
+ },
+ "300261": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
  },
  "300270": {
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "kvert": 2
+ },
+ "300272": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
+ },
+ "300280": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "kvert": 0
  },
  "311120": {
   "eruption": true,
@@ -311,11 +674,313 @@
   "jma": 0,
   "geonet": 0
  },
+ "354000": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
+ "354001": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
+ "354003": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
  "354006": {
   "eruption": true,
   "usgs": 0,
   "jma": 0,
-  "geonet": 0
+  "geonet": 0,
+  "igp": 2
+ },
+ "354010": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
+ "354020": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
+ "354030": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
+ "354031": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
+ "354040": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
+ "354050": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
+ "354060": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "igp": 0
+ },
+ "370010": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "370020": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "370030": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 1
+ },
+ "371020": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 2
+ },
+ "371022": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "371030": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "371032": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "371040": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "371050": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "371051": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "371060": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "371070": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "371080": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "371090": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "372010": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "372020": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "372030": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "372040": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "372050": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "372070": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "373010": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "373012": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "373030": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 1
+ },
+ "373040": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "373050": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "373060": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "373070": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "373080": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "373082": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "373090": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "374010": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "374020": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
+ },
+ "374801": {
+  "eruption": false,
+  "usgs": 0,
+  "jma": 0,
+  "geonet": 0,
+  "imo": 0
  },
  "390020": {
   "eruption": true,
