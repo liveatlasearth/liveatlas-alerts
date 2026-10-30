@@ -32,11 +32,15 @@ export async function detecter(etat, maintenant = Date.now()) {
   const ids = (q) => (q.properties.ids ?? "").split(",").filter(Boolean).concat(q.id);
   const fait = (q) => Object.assign({}, ...ids(q).map((i) => etat[i] ?? {}));
   const pres = (a, b) => Math.abs(a.properties.time - b.properties.time) <= 30e3 && distKm(a.geometry.coordinates, b.geometry.coordinates) <= 100;
+  // Values the USGS is still likely to replace (settings of Oct 30, 2026): a quick magnitude (mb, ml, md…) from M5.5 until the moment
+  // magnitude (Mww, Mwr…) comes, a US regional network until the USGS solution takes over; never longer than the caps
+  const provisoire = (q, age) => (q.properties.mag >= S.magnitude_finale_des && !/^mw/i.test(q.properties.magType ?? "") && age < S.attente_magnitude_finale_minutes * 60e3)
+    || (q.properties.net !== "us" && age < S.attente_reseau_regional_minutes * 60e3);
   // The USGS solution first, so that it is the one posted when two networks show the same quake in one run
   const pris = [], ordre = [...flux.features].sort((a, b) => (b.properties.net === "us") - (a.properties.net === "us"));
   for (const q of ordre) {
     const age = maintenant - q.properties.time;
-    if (age < attente || age > agePlus) continue; // the USGS often revises the magnitude in the first minutes
+    if (age < attente || age > agePlus || provisoire(q, age)) continue;
     if (pris.some((v) => pres(q, v))) continue;
     const deja = Object.assign(fait(q), ...flux.features.filter((v) => v !== q && pres(q, v)).map(fait)), manque = reseaux(q).filter((r) => !deja[r]);
     if (manque.length) { pris.push(q); aFaire.push({ id: q.id, mag: q.properties.mag, lieu: q.properties.place, temps: q.properties.time, reseaux: manque, pager: q.properties.alert }); }
