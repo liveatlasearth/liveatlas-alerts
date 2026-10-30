@@ -155,7 +155,7 @@
   },
   "volcans": {
     "compte": "volcans",
-    "source": "Smithsonian GVP (rapport hebdomadaire) + niveaux d'alerte USGS, JMA, GeoNet + avis de cendres VAAC (déjà dans /donnees/evenements.json)",
+    "source": "Smithsonian GVP (rapport hebdomadaire) + niveaux d'alerte USGS, JMA, GeoNet + avis de cendres VAAC (déjà dans /donnees/evenements.json) + niveaux PHIVOLCS (Philippines, barre « Alert Level Status » de wovodat.phivolcs.dost.gov.ph/bulletin/list-of-bulletin, ajoutés le 30/10/2026)",
     "declencheurs": [
       {
         "cas": "nouvelle éruption d'un volcan qui n'était pas en éruption",
@@ -166,7 +166,7 @@
         ]
       },
       {
-        "cas": "hausse du niveau d'alerte : USGS orange ou rouge, JMA niveau 3 et plus, GeoNet niveau 3 et plus",
+        "cas": "hausse du niveau d'alerte : USGS orange ou rouge, JMA niveau 3 et plus, GeoNet niveau 3 et plus, PHIVOLCS niveau 3 et plus",
         "reseaux": [
           "x",
           "instagram",
