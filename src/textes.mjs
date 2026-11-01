@@ -2,7 +2,7 @@
 // Rules (Live Atlas templates, Oct 2026): Title Case labels, miles first then km, local time, no source line, no disclaimer,
 // calm wording, nothing that is not in the USGS data.
 import { geoContains } from "d3-geo";
-import { ajusterX, classe, COMPTES, DIRIGE, kmEnMi, lireJson, NOM_MMI, nf, ROMAIN, titreLieu, variante } from "./commun.mjs";
+import { ajusterX, classe, COMPTES, DIRIGE, ETATS_US, kmEnMi, lireJson, NOM_MMI, nf, ROMAIN, titreLieu, variante } from "./commun.mjs";
 const HASHTAGS = lireJson("config", "hashtags.json");
 import { auxUSA } from "./detecter.mjs";
 
@@ -33,7 +33,7 @@ export function textes(d) {
   const profTexte = profFixee ? "Shallow, Not Determined" : `${d.prof_mi} mi (${Math.round(d.prof_km)} km)${profEstimee ? ", Estimated" : ""}`;
   // Open ocean with no town nearby: local time means nothing there, the time is given in UTC
   const horaireMer = !m && enMer, moisUtc = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" }).format(new Date(d.temps));
-  const pays = d.pays, usa = auxUSA(d.lieu), lien = COMPTES.seismes.lien_seisme.replace("{id}", id).replace("{lon}", d.lon.toFixed(2)).replace("{lat}", d.lat.toFixed(2));
+  const pays = ETATS_US[d.pays] ?? d.pays, usa = auxUSA(d.lieu), lien = COMPTES.seismes.lien_seisme.replace("{id}", id).replace("{lon}", d.lon.toFixed(2)).replace("{lat}", d.lat.toFixed(2));
   const mmiMax = d.mmi_max ? Math.round(d.mmi_max) : null, ville = d.villes[0], mmiVille = ville ? Math.round(ville.mmi) : null;
   const exposes = d.exposes_vi_plus >= 1000 ? Math.round(d.exposes_vi_plus / 1000) * 1000 : null;
 
@@ -44,11 +44,13 @@ export function textes(d) {
   const villeTag = ref && ref.split(",")[0] !== pays ? tagLocal(ref.split(",")[0]) : null;
   const lieux = [villeTag, usa ? tag(pays) : tag(pays), paysLocal ? tagLocal(paysLocal) : null].filter(Boolean);
   // One "Earthquake" tag only, then a "Seismic" tag to vary the words (user rule, Oct 28, 2026)
-  const sism = H.sismiques, k = sism.indexOf(variante(id, "sm", sism)), sism1 = sism[k], sism2 = sism[(k + 1) % sism.length];
-  const destructeur = ["orange", "red"].includes(d.pager) || d.mag >= 7, large = destructeur ? H.large_destructeur : variante(id, "lg", H.larges);
-  const uniques = (l) => [...new Set(l)].join(" ");
+  const sism1 = variante(id, "sm", H.sismiques), destructeur = ["orange", "red"].includes(d.pager) || d.mag >= 7;
+  const uniques = (l) => [...new Set(l.filter(Boolean))].join(" ");
   const hX = uniques([local, ...lieux, ...H.indispensables, sism1]);
-  const hIG = uniques([local, ...lieux, ...H.indispensables, sism1, sism2, large]);
+  // Instagram, 6 tags at most (Instagram caps posts at 5 since Dec 2025 per most reports; hashtag study of Oct 31, 2026): local word, country
+  // or state, the searched "Earthquake + place" (#EarthquakeJapan), a rotating news tag (#EarthquakeToday…), the Seismic tag, then
+  // #NaturalDisaster when destructive, else the town
+  const hIG = uniques([local, tag(pays), tag("Earthquake " + pays), variante(id, "ac", H.actu), sism1, destructeur ? H.large_destructeur : villeTag]);
   const hFB = uniques([local, ...lieux.slice(0, 2), "#Earthquake"]);
 
   const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : dirige ? region : (surDorsale ? "on the " : "in the ") + region}`;

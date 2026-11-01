@@ -1,8 +1,14 @@
 {
- "_lisez_moi": "Hashtag library of the alert posts (decided Oct 28, 2026). Per post: local word (mandatory), city, country in English, country in its own language when different, ONE 'Earthquake' tag only (#Earthquake), then mandatorily a 'Seismic' tag to vary the words (#SeismicActivity, #Seismology, #Seismic, rotating); on Instagram a second Seismic tag and one broad tag. #NaturalDisaster only for destructive events (USGS impact orange or red, or M7+). #Tectonics optional, never automatic. No brand tag.",
+ "_lisez_moi": "Hashtag library of the alert posts (decided Oct 28, 2026, Instagram reworked Nov 1, 2026 from a hashtag search study). X and Facebook: local word (mandatory), city, country in English, country in its own language when different, ONE Earthquake tag (#Earthquake) and a Seismic tag (rotating). Instagram: 6 tags at most (Instagram caps posts at 5 since Dec 2025 per most reports): local word, country or US state, #Earthquake+place (#EarthquakeJapan), one news tag from actu (#EarthquakeToday half the time), one Seismic tag, then #NaturalDisaster when destructive (USGS impact orange or red, or M7+) else the town. Volcano Instagram: local word, volcano (#MayonVolcano), state or province, country, one tag from generiques, one Volcanology tag. Weekly reel Instagram: #Earthquakes, Seismic tags, 3 places. Never #Earthquake and #Earthquakes together. #Tectonics optional, never automatic. No brand tag.",
  "seismes": {
   "indispensables": [
    "#Earthquake"
+  ],
+  "actu": [
+   "#EarthquakeToday",
+   "#EarthquakeToday",
+   "#Earthquakes",
+   "#EarthquakeNews"
   ],
   "niveau1": [
    "#Earthquake",
@@ -55,6 +61,11 @@
  "volcans": {
   "indispensables": [
    "#Volcano"
+  ],
+  "generiques": [
+   "#Volcano",
+   "#Volcano",
+   "#Volcanoes"
   ],
   "niveau1": [
    "#Volcano",

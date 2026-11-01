@@ -5,10 +5,9 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { geoDistance } from "d3-geo";
-import { ajusterX, DIRIGE, json, kmEnMi, lireJson, nf, nomPropre, RACINE, titreLieu, variante } from "./commun.mjs";
+import { ajusterX, DIRIGE, ETATS_US, json, kmEnMi, lireJson, nf, nomPropre, RACINE, titreLieu, variante } from "./commun.mjs";
 
 const HASHTAGS = lireJson("config", "hashtags.json").seismes;
-const ETATS_US = { CA: "California", NV: "Nevada", OR: "Oregon", WA: "Washington", UT: "Utah", ID: "Idaho", MT: "Montana", WY: "Wyoming", NM: "New Mexico", AZ: "Arizona", TX: "Texas", OK: "Oklahoma", HI: "Hawaii", AK: "Alaska", CO: "Colorado", KS: "Kansas" };
 
 // New York local date, weekday and hour (DST handled by the time zone database)
 const newYork = (ms) => {
@@ -85,12 +84,13 @@ export function textesHebdo(d) {
   const ligne5 = [...(d.mode !== "ressenti" ? [`⬇️ Deepest: ${p.mi} mi (${p.km} km), M${p.mag.toFixed(1)} ${dans(p)} (${p.jour})`] : []), ...(d.mode !== "profond" ? [`🙋 Most Felt: M${r.mag.toFixed(1)} ${r.lieu}, ${nf.format(r.felt)} Reports`] : [])];
   const lignes = [`📊 Quakes M4.5+: ${d.n}`, `${emoji} Strongest: M${f.mag.toFixed(1)}, ${f.lieu} (${f.jour})`, `📍 Busiest Spot: ${a.nom}, ${a.n} Quakes${a.nJourMax >= 10 ? ` (${a.nJourMax} on ${a.jourMax})` : ""}`, ...ligne5];
   const lieux = [...new Set([f.region, a.nom, d.mode !== "ressenti" ? p.region : r.region, d.mode === "deux" ? r.region : null].filter(Boolean).map(tag))];
-  const sism = HASHTAGS.sismiques, s1 = variante(d.id, "sm", sism), s2 = sism[(sism.indexOf(s1) + 1) % sism.length], large = variante(d.id, "lg", HASHTAGS.larges);
+  // Instagram: 6 tags at most, #Earthquakes for a weekly roundup (hashtag study of Oct 31, 2026)
+  const sism = HASHTAGS.sismiques, s1 = variante(d.id, "sm", sism), s2 = sism[(sism.indexOf(s1) + 1) % sism.length];
   const titre = `🌍 This Week in Earthquakes, ${d.periode}`;
   return {
     type: "seisme", lien: "https://www.liveatlas.earth/", narration,
     legendes: {
-      instagram: `${titre}\n\n${lignes.join("\n")}\n\n🗺️ Live Map, Link in Bio\n\n${["#Earthquake", s1, ...lieux, s2, large].join(" ")}`,
+      instagram: `${titre}\n\n${lignes.join("\n")}\n\n🗺️ Live Map, Link in Bio\n\n${["#Earthquakes", s1, ...lieux.slice(0, 3), s2].join(" ")}`,
       x: ajusterX(`${titre.replace(/, \d{4}$/, "")}\n\n${lignes.join("\n")}\n\n👇 Live Map\nhttps://www.liveatlas.earth/\n\n`, ["#Earthquake", s1, ...lieux.slice(0, 2)], ["#Earthquake"]),
       facebook: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\nhttps://www.liveatlas.earth/\n\n${["#Earthquake", s1, ...lieux].join(" ")}`,
     },

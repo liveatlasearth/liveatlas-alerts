@@ -108,8 +108,11 @@ export function textesVolcan(d) {
   const local = HASHTAGS.langues[langue]?.volcan?.[0] ?? HASHTAGS.langues.en.volcan[0];
   const lieux = [tag(court), d.region ? tag(d.region) : null, d.pays ? tag(d.pays) : null, paysLocal ? tagLocal(paysLocal) : null].filter(Boolean);
   const ou = [d.region, d.pays].filter(Boolean).join(", ");
-  const v1 = variante(d.id, "v1", H.sismiques), v2 = H.sismiques[(H.sismiques.indexOf(v1) + 1) % H.sismiques.length], large = variante(d.id, "lg", H.larges);
-  const u = (l) => [...new Set(l)].join(" ");
+  const v1 = variante(d.id, "v1", H.sismiques);
+  const u = (l) => [...new Set(l.filter(Boolean))].join(" ");
+  // Instagram, 6 tags at most (hashtag study of Oct 31, 2026): local word, "Name Volcano" (#MayonVolcano, searched), state or province,
+  // country in English, #Volcano or #Volcanoes in turn, a Volcanology tag; the country in its own language stays on X and Facebook
+  const hIG = u([local, tag(court), d.region ? tag(d.region) : null, d.pays ? tag(d.pays) : null, variante(d.id, "vg", H.generiques), v1]);
   const lignes = [
     `🌋 Volcano: ${court}`,
     `📍 Location: ${ou ? ou + " " : ""}(${coords})`,
@@ -119,7 +122,7 @@ export function textesVolcan(d) {
   const sourceL = source ? `\nSource: ${source}` : "";
   const legendes = {
     x: ajusterX(`${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${sourceL}\n\n`, u([local, ...lieux, "#Volcano", v1]).split(" "), [local, "#Volcano"]),
-    instagram: `${titre}\n\n${lignes.join("\n")}\n\n🗺️ Live Map, Link in Bio${sourceL}\n\n${u([local, ...lieux, "#Volcano", v1, v2, large])}`,
+    instagram: `${titre}\n\n${lignes.join("\n")}\n\n🗺️ Live Map, Link in Bio${sourceL}\n\n${hIG}`,
     facebook: `${titre}\n\n${lignes.join("\n")}\n\n👇 Live Map\n${d.lien}${sourceL}\n\n${u([local, ...lieux.slice(0, d.region ? 3 : 2), "#Volcano"])}`,
   };
   const ecran = {

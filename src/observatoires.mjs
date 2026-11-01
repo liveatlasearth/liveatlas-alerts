@@ -43,8 +43,10 @@ export const SOURCES = [
   } },
   { cle: "kvert", organisme: "KVERT", pays: "Russie", seuil: 2, boite: [140, 41, 170, 62], lire: async () => {
     // "SUMMARY OF AVIATION COLOUR CODES" of the Kamchatka team (plain HTTP only): "SHEVELUCH: ORANGE", "A, B, C: GREEN"
-    const t = (await page("http://kvert.febras.net/")).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+    const t = (await page("http://kvert.febras.net/")).replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ");
     const resume = t.match(/SUMMARY OF AVIATION COLOU?R CODES(.*?)(?:Kamchatka Volcanic Eruption Response Team|$)/i)?.[1] ?? "";
+    // Some days the page only shows the latest notices (Nov 1, 2026): "Volcano: Sheveluch … Current aviation colour code: ORANGE"
+    if (!resume) return [...t.matchAll(/Volcano: ([^(]+?) \(.*?Current aviation colou?r code: (GREEN|YELLOW|ORANGE|RED)/gi)].map(([, nom, c]) => ({ nom: nom.trim(), ...aviation(c) }));
     return [...resume.matchAll(/([A-Z][A-Z ,'-]+?):\s*(GREEN|YELLOW|ORANGE|RED)\b/g)].flatMap(([, noms, c]) =>
       noms.replace(/^(KAMCHATKA|NORTHERN KURILES|CENTRAL KURILES|SOUTHERN KURILES)\s+/, "").split(",").map((n) => ({ nom: n.trim(), ...aviation(c) })));
   } },

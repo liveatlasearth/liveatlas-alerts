@@ -31,6 +31,8 @@ export const DIRIGE = /^(?:north|south|east|west)[a-z]* of |^(?:off|near) the /;
 export const nomPropre = (s) => s.replace(/^(?:[a-z]+ )+/, "");
 const PETITS = ["of", "the", "and", "on", "in", "at", "off"];
 export const titreLieu = (s) => s.split(" ").map((w, i) => i && PETITS.includes(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+// US states the USGS writes as abbreviations at the end of a place ("10 km N of X, CA")
+export const ETATS_US = { CA: "California", NV: "Nevada", OR: "Oregon", WA: "Washington", UT: "Utah", ID: "Idaho", MT: "Montana", WY: "Wyoming", NM: "New Mexico", AZ: "Arizona", TX: "Texas", OK: "Oklahoma", HI: "Hawaii", AK: "Alaska", CO: "Colorado", KS: "Kansas" };
 // Length of a post as X counts it (X without a paid plan: 280): a link = 23, an emoji = 2 (its variation selector free),
 // Latin letters and common punctuation = 1, everything else = 2 (twitter-text rules)
 export const longueurX = (t) => {
