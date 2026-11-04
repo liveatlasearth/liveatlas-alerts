@@ -15,6 +15,8 @@ export async function preparer() {
 }
 // The bundle holds a copy of public/ made when it was built: files of each event are copied in just before rendering
 const synchroniser = (id) => cpSync(join(RACINE, "public", "evenements", id), join(serveUrl, "public", "evenements", id), { recursive: true });
+// Remotion's ffmpeg; on Windows (run through the shell) the paths with spaces need quotes
+const ffmpeg = (args) => execFileSync("npx", ["remotion", "ffmpeg", ...(process.platform === "win32" ? args.map((a) => (/\s/.test(a) ?`"${a}"` : a)) : args)], { shell: process.platform === "win32", cwd: RACINE });
 export const fermer = () => { if (serveUrl) rmSync(serveUrl, { recursive: true, force: true }); serveUrl = null; };
 
 // Zoom that frames the "moderate shaking" (V) contour of the ShakeMap at about 330 px from the epicenter
@@ -77,7 +79,7 @@ export async function reel(d, ecran, narration, sortie) {
   const brut = join(sortie, "_brut.mp4");
   await renderMedia({ composition, serveUrl: url, codec: "h264", crf: 18, pixelFormat: "yuv420p", inputProps, outputLocation: brut });
   // ffmpeg bundled with Remotion (no install on the runner): sound normalized for the networks (-14 LUFS)
-  execFileSync("npx", ["remotion", "ffmpeg", "-y", "-loglevel", "error", "-i", brut, "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", join(sortie, "reel.mp4")], { shell: process.platform === "win32", cwd: RACINE });
+  ffmpeg(["-y", "-loglevel", "error", "-i", brut, "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", join(sortie, "reel.mp4")]);
   rmSync(brut);
   return ["reel.mp4", "reel-cover-9x16.jpg"];
 }
@@ -104,7 +106,33 @@ export async function reelHebdo(d, narration, sortie) {
   await renderStill({ composition, serveUrl: url, frame: 0, inputProps, output: join(sortie, "reel-cover-9x16.jpg"), imageFormat: "jpeg", jpegQuality: 92 });
   const brut = join(sortie, "_brut.mp4");
   await renderMedia({ composition, serveUrl: url, codec: "h264", crf: 18, pixelFormat: "yuv420p", inputProps, outputLocation: brut });
-  execFileSync("npx", ["remotion", "ffmpeg", "-y", "-loglevel", "error", "-i", brut, "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", join(sortie, "reel.mp4")], { shell: process.platform === "win32", cwd: RACINE });
+  ffmpeg(["-y", "-loglevel", "error", "-i", brut, "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", join(sortie, "reel.mp4")]);
+  rmSync(brut);
+  return ["reel.mp4", "reel-cover-9x16.jpg"];
+}
+
+// Reel of one place for the regular posts (remotion/ReelLieu.jsx): scenes "accroche", "lieu", "satellite" (if any), "fin",
+// one narration paragraph each. Same voice, music and loudness as the weekly reel.
+export async function reelLieu(id, d, types, narration, sortie) {
+  const url = await preparer(), dossier = `evenements/${id}`;
+  mkdirSync(join(RACINE, "public", dossier), { recursive: true }); mkdirSync(sortie, { recursive: true });
+  const sansVoix = process.env.ESSAI_SANS_VOIX === "1";
+  const mots = sansVoix ? narration.split(/\s+/).filter(Boolean).map((w, j) => ({ word: w, start: j / 2.6, end: j / 2.6 + 0.35 }))
+    : await voix(narration, join(RACINE, "public", dossier, "voix.mp3"));
+  synchroniser(id);
+  const paras = narration.trim().split(/\n\s*\n/).map((p) => p.trim().split(/\s+/).length);
+  const debuts = []; let i = 0; for (const n of paras) { debuts.push(mots[i].start); i += n; }
+  const VO = Math.max(0, Math.round(6 - mots[0].start * 30)), sec = (s) => (VO + s * 30 - 8) / 30, fin = Math.round(VO + mots.at(-1).end * 30) + 50;
+  // The hook stays at least 2.5 s, so the title can be read
+  const scenes = types.map((type, j) => ({ type, de: j ? Math.max(sec(debuts[j]), j === 1 ? 2.5 : 0) : 0 }));
+  scenes.forEach((s, j) => { s.a = j < scenes.length - 1 ? scenes[j + 1].de : fin / 30; });
+  const parle = []; for (const m of mots) { const a = Math.round(VO + m.start * 30), b = Math.round(VO + m.end * 30); if (parle.length && a - parle.at(-1)[1] < 11) parle.at(-1)[1] = b; else parle.push([a, b]); }
+  const inputProps = { dossier, d, scenes, couverture: scenes[0].a - 0.2, audio: { voix: sansVoix ? null : `${dossier}/voix.mp3`, voixDebut: VO, parle, fin, musique: "musique/calme-1.mp3" } };
+  const composition = await selectComposition({ serveUrl: url, id: "reel-lieu", inputProps });
+  await renderStill({ composition, serveUrl: url, frame: 0, inputProps, output: join(sortie, "reel-cover-9x16.jpg"), imageFormat: "jpeg", jpegQuality: 92 });
+  const brut = join(sortie, "_brut.mp4");
+  await renderMedia({ composition, serveUrl: url, codec: "h264", crf: 18, pixelFormat: "yuv420p", inputProps, outputLocation: brut });
+  ffmpeg(["-y", "-loglevel", "error", "-i", brut, "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", join(sortie, "reel.mp4")]);
   rmSync(brut);
   return ["reel.mp4", "reel-cover-9x16.jpg"];
 }

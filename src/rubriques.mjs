@@ -12,7 +12,7 @@ import { join } from "node:path";
 import { ajusterX, classe, COMPTES, json, lireJson, nf, RACINE, SEUILS, titreLieu, variante, ecrireJson } from "./commun.mjs";
 import { geoAutour } from "./donnees.mjs";
 import { donneesVolcan, lireVolcans, textesVolcan } from "./volcans.mjs";
-import { imageRubrique } from "./rendre.mjs";
+import { imageRubrique, reelLieu } from "./rendre.mjs";
 import { vueSatellite } from "./satellite.mjs";
 
 const SITE = "https://www.liveatlas.earth", R = SEUILS.rubriques, SORTIE = join(RACINE, "sortie");
@@ -25,6 +25,15 @@ const u = (l) => [...new Set(l.filter(Boolean))].slice(0, 6).join(" ");
 const TEINTE = { 1: "#3DDC97", 2: "#F2D14B", 3: "#F2A93B", 4: "#E5303A", 5: "#B0124A" };
 // Eruption size in plain words (no "VEI" on screen, rule of Oct 13, 2026): 0–1 small, 2 moderate, 3 mid-size, 4 large, 5+ very large
 const TAILLE = (vei) => vei == null ? null : vei <= 1 ? "Small" : vei === 2 ? "Moderate" : vei === 3 ? "Mid-Size" : vei === 4 ? "Large" : "Very Large";
+// Spoken text of the reels: "the" before the countries that take it; "people" or "person"
+const le = (pays) => /^(Philippines|United States|United Kingdom|Netherlands|Dominican Republic|Czech Republic|Central African Republic|Bahamas)$|Islands$/.test(pays) ? `the ${pays}` : pays;
+const gens = (n) => `${nf.format(n)} ${n === 1 ? "person" : "people"}`;
+// State and alert facts of a volcano post said aloud ("The JMA alert level is 3 of 5.", "The aviation color code is orange.")
+const minus = (s) => s.replace(/\b[A-Z][a-z]+\b/g, (w) => w.toLowerCase());
+const etatDit = (e) => [
+  /^Erupting Since \d{4}$/.test(e.ligne2) ? `It has been erupting since ${e.ligne2.slice(-4)}.` : e.ligne2 === "Erupting Now" ? "It is erupting right now." : e.ligne2 === "Unrest" ? "It is showing signs of unrest." : null,
+  ...e.faits.map(([, v, l]) => /Warning$/.test(l) ? `A ${minus(v)} is in effect.` : `The ${minus(l)} is ${minus(v)}.`),
+].filter(Boolean).join(" ");
 
 // English names and countries of the site's volcanoes (the live data has French names)
 let EN = null, PAYS = null;
@@ -107,7 +116,9 @@ async function spotlight(volcans, jour, etat) {
   const titre = `🔦 Volcano Spotlight: ${court}${d.pays && d.pays !== court ? `, ${d.pays}` : ""}`;
   const legendes = Object.fromEntries(Object.entries(txt.legendes).map(([r, s]) => [r, s.replace(/^[^\n]*/, titre)]));
   const satellite = await vueSatellite(d.lon, d.lat, join(RACINE, "public", "evenements", d.id, "satellite.jpg")).catch(() => null);
-  return { volcanId: v.id, dossier: d.id, composition: "volcan-carre", type: "volcan", ecran: { ...txt.ecran, pastille: "Volcano Spotlight" }, legendesPretes: legendes, lien: d.lien, titre, satellite };
+  const ecran = { ...txt.ecran, pastille: "Volcano Spotlight" }, ou = ecran.pays && (ecran.pays.includes(",") ? ecran.pays : le(ecran.pays));
+  return { volcanId: v.id, dossier: d.id, composition: "volcan-carre", type: "volcan", ecran, legendesPretes: legendes, lien: d.lien, titre, satellite, lon: d.lon, lat: d.lat,
+    reel: { accroche: `Volcano Spotlight: ${court}${ou ? `, in ${ou}` : ""}.`, lieu: etatDit(ecran), fin: "Follow it on the live map, link in bio." } };
 }
 
 async function ceJourVolcan(jour) {
@@ -125,7 +136,9 @@ async function ceJourVolcan(jour) {
     titre: `📅 On This Day in ${annee}: ${nom} Erupted, ${pays}`,
     lignes: [`🌋 Volcano: ${nom}`, `📍 Location: ${pays}`, `📅 Date: ${quand}`, ...(taille ? [`📏 Eruption Size: ${taille} (VEI ${vei})`] : []), ...(morts ? [`💀 Deaths: ${nf.format(morts)}`] : [])],
     lien: `${SITE}/eruptions/${slug}/`, libelleLien: "The Full Story", source: "NOAA NCEI, Smithsonian GVP",
-    hashtags: ["#Volcano", tag(nom), tag(pays), "#OnThisDay", "#VolcanoHistory", "#Volcanology"],
+    hashtags: ["#Volcano", tag(nom), tag(pays), "#OnThisDay", "#VolcanoHistory", "#Volcanology"], lon, lat,
+    reel: { accroche: `On this day in ${annee}, ${nom} erupted in ${le(pays)}.`, fin: "Read the full story on Live Atlas, link in bio.",
+      lieu: taille ? `It was a ${taille.toLowerCase()} eruption${morts ? `, and it killed ${gens(morts)}` : ""}.` : morts ? `It killed ${gens(morts)}.` : "Here is where it happened." },
   };
 }
 
@@ -167,7 +180,9 @@ function ceJourSeisme(jour) {
     titre: `📅 On This Day in ${annee}: ${nomBrut ? nom : `M${mag.toFixed(1)} Earthquake in ${pays}`}`,
     lignes: [`📏 Magnitude: ${mag.toFixed(1)} (${c.nom})`, `📍 Location: ${pays}`, `📅 Date: ${quand}`, ...(prof ? [`⬇️ Depth: ${Math.round(prof / 1.609344)} mi (${prof} km)`] : []), ...(morts ? [`💀 Deaths: ${nf.format(morts)}`] : []), ...(tsunami ? ["🌊 Followed by a tsunami"] : [])],
     lien: `${SITE}/earthquakes/${slug}/`, libelleLien: "The Full Story", source: "NOAA NCEI",
-    hashtags: ["#Earthquake", tag(pays), `#Earthquake${tag(pays).slice(1)}`, "#OnThisDay", "#EarthquakeHistory", "#Seismology"],
+    hashtags: ["#Earthquake", tag(pays), `#Earthquake${tag(pays).slice(1)}`, "#OnThisDay", "#EarthquakeHistory", "#Seismology"], lon, lat,
+    reel: { accroche: `On this day in ${annee}, a magnitude ${mag.toFixed(1)} earthquake struck ${le(pays)}.`, fin: "Read the full story on Live Atlas, link in bio.",
+      lieu: [nomBrut && nom !== `${pays} Earthquake` ? `It is known as the ${nom}.` : null, morts ? `It killed ${gens(morts)}${tsunami ? ", and a tsunami followed" : ""}.` : tsunami ? "A tsunami followed." : prof ? `It started ${Math.round(prof / 1.609344)} miles deep.` : null].filter(Boolean).join(" ") || "Here is where it struck." },
   };
 }
 
@@ -181,25 +196,56 @@ function legendes(p) {
   };
 }
 
+// Captions of a post, with the satellite and date of the view from space (src/satellite.mjs) on Instagram and Facebook
+const satQuand = (p) => dateCourte(Date.parse(p.satellite.date + "T12:00:00Z"));
+function texte(p) {
+  const txt = { type: p.type, lien: p.lien, legendes: { ...(p.legendesPretes ?? legendes(p)) } };
+  if (p.satellite) for (const r of ["instagram", "facebook"]) txt.legendes[r] = txt.legendes[r].replace(/\n\n(🗺️|👇)/u, `\n🛰️ Satellite View: ${p.satellite.capteur}, ${satQuand(p)} (${p.satellite.credit})\n\n$1`);
+  return txt;
+}
+function fichiersTexte(sortie, p, jour, txt, reseaux, etat) {
+  writeFileSync(join(sortie, "legendes.json"), JSON.stringify(txt, null, 1));
+  writeFileSync(join(sortie, "reseaux.txt"), reseaux.join(",") || "brouillon");
+  writeFileSync(join(sortie, "titre.txt"), `${p.titre ?? txt.legendes.x.split("\n")[0]}${txt.narration ? " · Reel" : ""} (${reseaux.length ? reseaux.join(", ") : "draft, not published"})`);
+  writeFileSync(join(sortie, "issue.md"), [`**Regular post${txt.narration ? " (reel)" : ""}** · ${p.type === "volcan" ? "@LiveAtlasErupts" : "@LiveAtlasQuakes"} · ${new Date(jour).toISOString().slice(0, 10)} · [Link](${p.lien})`, "", etat, "",
+    "### X", "```", txt.legendes.x, "```", "", "### Instagram", "```", txt.legendes.instagram, "```", "", "### Facebook", "```", txt.legendes.facebook, "```", "",
+    ...(txt.narration ? ["### Narration", "```", txt.narration, "```", ""] : [])].join("\n"));
+}
+
 async function ecrire(id, p, jour) {
   const sortie = join(SORTIE, id), dossier = p.dossier ?? id;
   mkdirSync(sortie, { recursive: true });
   if (!p.dossier) { const { monde, plaques } = geoAutour(0, 0); ecrireJson(join(RACINE, "public", "evenements", id, "donnees.json"), { id, geo: { monde, plaques } }, false); }
-  const fichiers = await imageRubrique(dossier, p.composition, p.ecran, sortie), txt = { type: p.type, lien: p.lien, legendes: p.legendesPretes ?? legendes(p) };
-  // Second image, the volcano seen from space (src/satellite.mjs), with its satellite and date in the Instagram and Facebook captions
-  if (p.satellite) {
-    const { date, capteur, credit } = p.satellite, quand = dateCourte(Date.parse(date + "T12:00:00Z"));
-    fichiers.push(...await imageRubrique(dossier, "volcan-satellite", { ...p.ecran, satLigne: `${capteur} Satellite, ${quand}` }, sortie, "post-4x5-satellite.jpg"));
-    for (const r of ["instagram", "facebook"]) txt.legendes[r] = txt.legendes[r].replace(/\n\n(🗺️|👇)/u, `\n🛰️ Satellite View: ${capteur}, ${quand} (${credit})\n\n$1`);
-  }
+  const fichiers = await imageRubrique(dossier, p.composition, p.ecran, sortie), txt = texte(p);
+  // Second image, the volcano seen from space
+  if (p.satellite) fichiers.push(...await imageRubrique(dossier, "volcan-satellite", { ...p.ecran, satLigne: `${p.satellite.capteur} Satellite, ${satQuand(p)}` }, sortie, "post-4x5-satellite.jpg"));
   const publier = R.publier, reseaux = publier ? ["x", "instagram", "facebook"] : [];
-  writeFileSync(join(sortie, "legendes.json"), JSON.stringify(txt, null, 1));
-  writeFileSync(join(sortie, "reseaux.txt"), reseaux.join(",") || "brouillon");
-  writeFileSync(join(sortie, "titre.txt"), `${p.titre ?? txt.legendes.x.split("\n")[0]} (${publier ? "x, instagram, facebook" : "draft, not published"})`);
-  writeFileSync(join(sortie, "issue.md"), [`**Regular post** · ${p.type === "volcan" ? "@LiveAtlasErupts" : "@LiveAtlasQuakes"} · ${new Date(jour).toISOString().slice(0, 10)} · [Link](${p.lien})`, "",
-    publier ? "Networks: x, instagram, facebook." : "Draft for review (seuils.rubriques.publier is false): nothing was published.", "",
-    "### X", "```", txt.legendes.x, "```", "", "### Instagram", "```", txt.legendes.instagram, "```", "", "### Facebook", "```", txt.legendes.facebook, "```", ""].join("\n"));
+  fichiersTexte(sortie, p, jour, txt, reseaux, publier ? "Networks: x, instagram, facebook." : "Draft for review (seuils.rubriques.publier is false): nothing was published.");
   return { id, rubrique: true, reseaux, fichiers };
+}
+
+// Reel version of a one-place post (remotion/ReelLieu.jsx): globe, the place and its facts, the view from space if any, end card.
+// The narration only says what the post shows (p.reel: hook and facts sentences written by each post).
+async function ecrireReel(id, p, jour, publier) {
+  const e = p.ecran, sat = p.satellite, an = (iso) => iso.slice(0, 4) !== new Date(jour).toISOString().slice(0, 4);
+  const quand = sat && new Date(sat.date + "T12:00:00Z").toLocaleString("en-US", { month: "long", day: "numeric", timeZone: "UTC", ...(an(sat.date) ? { year: "numeric" } : {}) });
+  const narration = [p.reel.accroche, p.reel.lieu, ...(sat ? [`Here it is from space, seen by a ${sat.capteur} satellite on ${quand}.`] : []), p.reel.fin].join("\n\n");
+  const d = { compte: p.type === "volcan" ? "volcans" : "seismes", couleur: e.couleur, lon: p.lon, lat: p.lat, pastille: e.pastille, nom: e.nom, sousTitre: e.pays && !e.nom.includes(e.pays) ? e.pays : null, ligneDate: e.ligne2, coords: e.coords,
+    faits: e.faits.map(([, v, l]) => [v, l]), satLigne: sat ? `${sat.capteur} Satellite, ${satQuand(p)}` : "", date: e.date.toUpperCase() };
+  const sortie = join(SORTIE, id), fichiers = await reelLieu(p.dossier, d, ["accroche", "lieu", ...(sat ? ["satellite"] : []), "fin"], narration, sortie);
+  const reseaux = publier ? ["reel"] : [];
+  fichiersTexte(sortie, p, jour, { ...texte(p), narration }, reseaux, publier ? "Networks: Instagram and Facebook reel (X by hand)." : "Draft reel for review (seuils.rubriques.reels.publier is false): nothing was published; the image post went out as usual.");
+  return { id, rubrique: true, reel: true, reseaux, fichiers };
+}
+
+// Days when the post is (also) a reel: seuils.rubriques.reels, getUTCDay (Sunday 0). Published instead of the image once
+// reels.publier is true, else built as a draft next to the image post. A failed reel never stops the image post.
+async function publierPost(id, p, jour, reelDuJour) {
+  const RR = R.reels ?? {};
+  if (reelDuJour && p.reel && RR.publier) try { return [await ecrireReel(id, p, jour, true)]; } catch (e) { console.log("Reel de rubrique : échec, post image à la place :", e.message); }
+  const faits = [await ecrire(id, p, jour)];
+  if (reelDuJour && p.reel && !RR.publier) try { faits.push(await ecrireReel(`${id}-reel`, p, jour, false)); } catch (e) { console.log("Reel de rubrique (brouillon) : échec :", e.message); }
+  return faits;
 }
 
 const JOURS_V = ["spotlight", "erupting", "spotlight", "onthisday", "alertes", "semaine", "onthisday"]; // Sunday first (getUTCDay)
@@ -221,7 +267,7 @@ export async function rubriques(etat, maintenant, faitsDuJour, manuel) {
     if (!p) p = await spotlight(volcans, jour, etat);
     if (p) {
       console.log(`\n== Rubrique volcans ${date} : ${sorte}${p.volcanId ? ` (${p.volcanId})` : ""}`);
-      faits.push(await ecrire(`rubrique-${cleV}`, p, jour));
+      faits.push(...await publierPost(`rubrique-${cleV}`, p, jour, (R.reels?.jours_volcans ?? []).includes(new Date(jour).getUTCDay())));
       if (!manuel) { fait(cleV); if (p.volcanId) fait(`spot-${p.volcanId}`); }
     }
   }
@@ -234,11 +280,11 @@ export async function rubriques(etat, maintenant, faitsDuJour, manuel) {
     if (!manuel) fait(cleS);
   }
 
-  // Earthquake On This Day, from 18:00 UTC, only on a day without an Instagram earthquake post
-  const cleJ = `ce-jour-seismes-${date}`;
-  if (nomManuel === "onthisday-seismes" || (!manuel && heure >= R.ce_jour_seismes_heure_utc * 60 && !memo[cleJ] && faitsDuJour("instagram") === 0)) {
+  // Earthquake On This Day, from 18:00 UTC, only on a day without an Instagram earthquake post, except on its reel days
+  const cleJ = `ce-jour-seismes-${date}`, reelJ = (R.reels?.jours_seismes ?? []).includes(new Date(jour).getUTCDay());
+  if (nomManuel === "onthisday-seismes" || (!manuel && heure >= R.ce_jour_seismes_heure_utc * 60 && !memo[cleJ] && (faitsDuJour("instagram") === 0 || reelJ))) {
     const p = ceJourSeisme(jour);
-    if (p) { console.log(`\n== Rubrique séisme On This Day ${date}`); faits.push(await ecrire(`rubrique-${cleJ}`, p, jour)); }
+    if (p) { console.log(`\n== Rubrique séisme On This Day ${date}`); faits.push(...await publierPost(`rubrique-${cleJ}`, p, jour, reelJ)); }
     if (!manuel) fait(cleJ);
   }
   // Keep three weeks of memory (Spotlights: eight weeks, so a volcano is not shown again too soon)

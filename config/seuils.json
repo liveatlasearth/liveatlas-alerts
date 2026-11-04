@@ -235,7 +235,13 @@
     "publier": true,
     "volcans_heure_utc": 15,
     "seismes_du_jour_minute_utc": 15,
-    "ce_jour_seismes_heure_utc": 18
+    "ce_jour_seismes_heure_utc": 18,
+    "reels": {
+      "_lisez_moi": "Version reel narrée (remotion/ReelLieu.jsx) de certains posts, ajoutée le 04/11/2026 pour 2 à 3 reels par semaine et par compte. Jours getUTCDay (0 = dimanche) : volcans samedi (On This Day) et dimanche (Spotlight), séismes samedi (On This Day, publié même si un séisme a déjà été posté ce jour-là). publier=false : le post image part comme d habitude et le reel arrive en brouillon dans une issue ; true : le reel remplace l image ces jours-là.",
+      "publier": false,
+      "jours_volcans": [6, 0],
+      "jours_seismes": [6]
+    }
   },
   "cyclones": {
     "_etat": "Plus tard (compte à décider). Idées : changements de catégorie, tempêtes à surveiller, trajectoire passée puis prévue (cône NHC, prévisions JTWC, pas encore dans les données du site).",

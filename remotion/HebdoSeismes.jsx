@@ -6,16 +6,16 @@ import { AbsoluteFill, Audio, Sequence, continueRender, delayRender, interpolate
 import { geoDistance, geoGraticule10, geoOrthographic, geoPath } from "d3-geo";
 import { usePolices } from "./commun.jsx";
 
-const C = { fond: "#0b141c", ocean: "#132a3d", terre: "#2a4c66", bord: "rgba(170,205,230,.45)", s1: "#F2D14B", s2: "#F2A93B", s3: "#FF6A4D", s4: "#E5303A", ambre: "#F2A93B", gris: "#b9c7d0" };
-const F = { d: "Bricolage, sans-serif", b: "Plex, sans-serif", m: "Mono, monospace" };
+export const C = { fond: "#0b141c", ocean: "#132a3d", terre: "#2a4c66", bord: "rgba(170,205,230,.45)", s1: "#F2D14B", s2: "#F2A93B", s3: "#FF6A4D", s4: "#E5303A", ambre: "#F2A93B", gris: "#b9c7d0" };
+export const F = { d: "Bricolage, sans-serif", b: "Plex, sans-serif", m: "Mono, monospace" };
 const couleur = (m) => (m >= 7 ? C.s4 : m >= 6 ? C.s3 : m >= 5 ? C.s2 : C.s1);
-const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3));
-const clamp = (x) => Math.max(0, Math.min(1, x));
-const lerp = (a, b, x) => a + (b - a) * x;
+export const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3));
+export const clamp = (x) => Math.max(0, Math.min(1, x));
+export const lerp = (a, b, x) => a + (b - a) * x;
 const nf = new Intl.NumberFormat("en-US");
 const CL = { extrapolateLeft: "clamp", extrapolateRight: "clamp" };
 
-function globe(k, G, v, dots) {
+export function globe(k, G, v, dots) {
   const p = geoOrthographic().rotate([-v.lon, -v.lat]).translate([540, v.cy]).scale(v.R).clipAngle(90).precision(0.3);
   const g = geoPath(p, k);
   k.beginPath(); g({ type: "Sphere" }); k.fillStyle = C.ocean; k.fill();
@@ -34,7 +34,7 @@ function globe(k, G, v, dots) {
   return p;
 }
 // Country names in view, most important first, without overlap, in the map area only
-function pays(k, G, p, v) {
+export function pays(k, G, p, v) {
   k.font = `600 38px ${F.b}`; k.textAlign = "center"; k.textBaseline = "middle";
   const pris = [[540 - 140, v.cy - 140, 540 + 140, v.cy + 140]];
   let n = 0;
@@ -47,31 +47,31 @@ function pays(k, G, p, v) {
     k.lineWidth = 6; k.strokeStyle = "rgba(19,42,61,.85)"; k.strokeText(nom, q[0], q[1]); k.fillStyle = "rgba(232,238,242,.8)"; k.fillText(nom, q[0], q[1]);
   }
 }
-function habillage(k, img, semaineDe) {
+export function habillage(k, img, droite) {
   k.strokeStyle = "rgba(232,238,242,.65)"; k.lineWidth = 4;
   for (const [x, y, sx, sy] of [[34, 34, 1, 1], [1046, 34, -1, 1], [34, 1886, 1, -1], [1046, 1886, -1, -1]]) { k.beginPath(); k.moveTo(x, y + 56 * sy); k.lineTo(x, y); k.lineTo(x + 56 * sx, y); k.stroke(); }
   // Round account badge of the page (pastilles/seismes.svg), as on the posts and the alert reel
   if (img) { k.save(); k.beginPath(); k.arc(102, 110, 26, 0, 7); k.clip(); k.drawImage(img, 76, 84, 52, 52); k.restore(); }
   k.fillStyle = "#fff"; k.font = `700 40px ${F.d}`; k.textAlign = "left"; k.textBaseline = "middle"; k.fillText("Live Atlas", 138, 110);
-  k.font = `500 24px ${F.m}`; k.fillStyle = C.gris; k.textAlign = "right"; k.fillText(`WEEK OF ${semaineDe}`, 1010, 110);
+  k.font = `500 24px ${F.m}`; k.fillStyle = C.gris; k.textAlign = "right"; k.fillText(droite, 1010, 110);
 }
-function pastille(k, x, y, texte, col) {
+export function pastille(k, x, y, texte, col) {
   k.font = `800 40px ${F.d}`; const w = k.measureText(texte).width + 86;
   k.fillStyle = col; k.beginPath(); k.roundRect(x, y, w, 72, 36); k.fill();
   k.fillStyle = "#0b141c"; k.beginPath(); k.arc(x + 36, y + 36, 9, 0, 7); k.fill();
   k.textAlign = "left"; k.textBaseline = "middle"; k.fillText(texte, x + 58, y + 38);
 }
-function fait(k, x, y, valeur, libelle, col, a, colValeur = "#fff") {
+export function fait(k, x, y, valeur, libelle, col, a, colValeur = "#fff") {
   k.globalAlpha = clamp(a); k.fillStyle = col; k.fillRect(x, y + 6, 8, 84);
   k.fillStyle = colValeur; k.font = `800 76px ${F.d}`; k.textAlign = "left"; k.textBaseline = "alphabetic"; k.fillText(valeur, x + 30, y + 66);
   k.fillStyle = "#c9d6df"; k.font = `600 34px ${F.b}`; k.fillText(libelle, x + 30, y + 112); k.globalAlpha = 1;
 }
 // Text on one line: font size reduced until it fits
-function ligne(k, texte, x, y, taille, poids, col, largeur = 940) {
+export function ligne(k, texte, x, y, taille, poids, col, largeur = 940) {
   let t = taille; do { k.font = `${poids} ${t}px ${F.d}`; t -= 2; } while (k.measureText(texte).width > largeur && t > 20);
   k.fillStyle = col; k.textAlign = "left"; k.textBaseline = "alphabetic"; k.fillText(texte, x, y);
 }
-function fiche(k, q, lignes, col, a, haut = 150) {
+export function fiche(k, q, lignes, col, a, haut = 150) {
   if (!q || a <= 0) return;
   k.globalAlpha = clamp(a); k.strokeStyle = col; k.lineWidth = 3; k.beginPath(); k.moveTo(q[0], q[1] + 34); k.lineTo(q[0], q[1] + haut); k.stroke();
   k.font = `800 60px ${F.d}`; const w0 = k.measureText(lignes[0]).width; k.font = `500 27px ${F.m}`;
@@ -84,12 +84,12 @@ function fiche(k, q, lignes, col, a, haut = 150) {
   lignes.slice(1).forEach((l, i) => k.fillText(l.toUpperCase().slice(0, tape), x + 28, y + 114 + i * 42));
   if ("letterSpacing" in k) k.letterSpacing = "0px"; k.globalAlpha = 1;
 }
-function anneaux(k, q, col, t) {
+export function anneaux(k, q, col, t) {
   if (!q) return;
   for (const [r, a, w] of [[150, 0.14, 2.5], [100, 0.28, 3], [62, 0.55, 3.5], [32, 0.9, 4]]) { k.beginPath(); k.arc(q[0], q[1], r * (1 + 0.06 * Math.sin(t * 3)), 0, 7); k.strokeStyle = col; k.globalAlpha = a; k.lineWidth = w; k.stroke(); }
   k.globalAlpha = 1; k.shadowColor = col; k.shadowBlur = 40; k.beginPath(); k.arc(q[0], q[1], 16, 0, 7); k.fillStyle = "#fff"; k.fill(); k.shadowBlur = 0;
 }
-function voile(k) {
+export function voile(k) {
   const gr = k.createLinearGradient(0, 0, 0, 1920);
   gr.addColorStop(0, "rgba(11,20,28,.8)"); gr.addColorStop(0.09, "rgba(11,20,28,0)"); gr.addColorStop(0.52, "rgba(11,20,28,0)"); gr.addColorStop(0.62, "rgba(11,20,28,.93)"); gr.addColorStop(0.7, C.fond); gr.addColorStop(1, C.fond);
   k.fillStyle = gr; k.fillRect(0, 0, 1080, 1920);
@@ -204,7 +204,7 @@ function image(k, G, img, d, sc, t) {
     k.fillStyle = "#dfe7ec"; k.font = `600 38px ${F.b}`; k.fillText("@LiveAtlasQuakes", 540, 1220);
     k.globalAlpha = 1;
   }
-  habillage(k, img, d.semaineDe);
+  habillage(k, img, `WEEK OF ${d.semaineDe}`);
 }
 
 export const HebdoSeismes = ({ d, scenes, audio, couverture }) => {
