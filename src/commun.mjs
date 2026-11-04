@@ -31,6 +31,14 @@ export const DIRIGE = /^(?:north|south|east|west)[a-z]* of |^(?:off|near) the /;
 export const nomPropre = (s) => s.replace(/^(?:[a-z]+ )+/, "");
 const PETITS = ["of", "the", "and", "on", "in", "at", "off"];
 export const titreLieu = (s) => s.split(" ").map((w, i) => i && PETITS.includes(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+// Word before a USGS region with no town: "on the Reykjanes Ridge", "in the Banda Sea", "in the Gulf of Alaska", "in Fiji" (not "in the Fiji",
+// Nov 3, 2026), "near Easter Island"; the first part only ("Mindanao, Philippines" → "in")
+export const prepLieu = (lieu) => {
+  const p = lieu.replace(/ region$/, "").split(",")[0].trim();
+  if (/ (Ridge|Rise)$/i.test(p)) return "on the";
+  if (/^(Gulf|Sea|Bay|Strait|Straits|Bight) of /i.test(p) || / (Islands|Sea|Ocean|Basin|Gulf|Strait|Straits|Trench|Zone|Coast|Peninsula|Mountains|Range|Archipelago|Philippines)$/i.test(p)) return "in the";
+  return / Island$/i.test(p) ? "near" : "in";
+};
 // US states the USGS writes as abbreviations at the end of a place ("10 km N of X, CA")
 export const ETATS_US = { CA: "California", NV: "Nevada", OR: "Oregon", WA: "Washington", UT: "Utah", ID: "Idaho", MT: "Montana", WY: "Wyoming", NM: "New Mexico", AZ: "Arizona", TX: "Texas", OK: "Oklahoma", HI: "Hawaii", AK: "Alaska", CO: "Colorado", KS: "Kansas" };
 // Length of a post as X counts it (X without a paid plan: 280): a link = 23, an emoji = 2 (its variation selector free),

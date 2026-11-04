@@ -5,7 +5,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { geoDistance } from "d3-geo";
-import { ajusterX, DIRIGE, ETATS_US, json, kmEnMi, lireJson, nf, nomPropre, RACINE, titreLieu, variante } from "./commun.mjs";
+import { ajusterX, DIRIGE, ETATS_US, json, kmEnMi, lireJson, nf, nomPropre, prepLieu, RACINE, titreLieu, variante } from "./commun.mjs";
 
 const HASHTAGS = lireJson("config", "hashtags.json").seismes;
 
@@ -65,9 +65,9 @@ export async function donneesHebdo(dateNy) {
 
 export function textesHebdo(d) {
   const f = d.fort, a = d.actif, p = d.profond, r = d.ressenti;
-  const pres = (x) => x.lieu.startsWith("Near ") ? x.lieu.replace(/^Near /, "near ") : DIRIGE.test(x.place) ? x.place.replace(/ region$/, "") : `in the ${x.lieu}`;
-  // Same in the captions, Title Case: "Near X", "Southeast of X", "in the X"
-  const dans = (x) => x.lieu.startsWith("Near ") || DIRIGE.test(x.place) ? x.lieu : `in the ${x.lieu}`;
+  const pres = (x) => x.lieu.startsWith("Near ") ? x.lieu.replace(/^Near /, "near ") : DIRIGE.test(x.place) ? x.place.replace(/ region$/, "") : `${prepLieu(x.lieu)} ${x.lieu}`;
+  // Same in the captions, Title Case: "Near X", "Southeast of X", "in the X", "in X"
+  const dans = (x) => x.lieu.startsWith("Near ") || DIRIGE.test(x.place) ? x.lieu : prepLieu(x.lieu) === "near" ? `Near ${x.lieu}` : `${prepLieu(x.lieu)} ${x.lieu}`;
   const phraseActif = `The busiest spot was ${a.nom === f.region ? "again " : ""}around ${a.nom}: ${a.n} quakes, led by a magnitude ${a.max.toFixed(1)}${a.nJourMax >= 10 ? `, with ${a.nJourMax} on ${a.jourMaxLong} alone` : ""}.`;
   const phraseProfond = `${d.mode === "deux" ? "The deepest" : "And the deepest"} started ${p.mi} miles below ${p.region}.`;
   const phraseRessenti = `${d.mode === "deux" ? "And the most felt" : "And the most felt"}, a magnitude ${r.mag.toFixed(1)} ${pres(r)}, drew ${nf.format(r.felt)} reports from people who felt it.`;

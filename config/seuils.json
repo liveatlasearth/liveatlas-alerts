@@ -79,7 +79,7 @@
       }
     },
     "reel": {
-      "magnitude_min": 6.5,
+      "magnitude_min": 6,
       "plus": [
         "alerte PAGER orange ou rouge"
       ],
@@ -149,7 +149,7 @@
       "facebook"
     ],
     "reel": {
-      "si_seisme_magnitude_min": 6.5
+      "si_seisme_magnitude_min": 6
     },
     "attente_avant_post_minutes": 0
   },

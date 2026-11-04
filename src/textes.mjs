@@ -2,7 +2,7 @@
 // Rules (Live Atlas templates, Oct 2026): Title Case labels, miles first then km, local time, no source line, no disclaimer,
 // calm wording, nothing that is not in the USGS data.
 import { geoContains } from "d3-geo";
-import { ajusterX, classe, COMPTES, DIRIGE, ETATS_US, kmEnMi, lireJson, NOM_MMI, nf, ROMAIN, titreLieu, variante } from "./commun.mjs";
+import { ajusterX, classe, COMPTES, DIRIGE, ETATS_US, kmEnMi, lireJson, NOM_MMI, nf, prepLieu, ROMAIN, titreLieu, variante } from "./commun.mjs";
 const HASHTAGS = lireJson("config", "hashtags.json");
 import { auxUSA } from "./detecter.mjs";
 
@@ -21,11 +21,11 @@ export function textes(d) {
   const utc = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(d.temps));
   const m = d.lieu.match(/^(\d+) km ([NSEW]{1,3}) of (.+)$/);
   const ref = m ? m[3] : null, ligneLieu = m ? `${kmEnMi(+m[1])} mi (${m[1]} km) ${m[2]} of ${m[3]}` : titreLieu(d.lieu);
-  // Ocean ridges and rises take "on the" ("on the Reykjanes Ridge"), other regions "in the"
-  const surDorsale = / (Ridge|Rise)$/i.test(d.lieu.replace(/ region$/, "")), article = surDorsale ? "on the" : "in the";
+  // Ocean ridges and rises take "on the" ("on the Reykjanes Ridge"), seas and island groups "in the", countries "in" (prepLieu)
+  const article = prepLieu(d.lieu);
   // No town nearby: a direction ("southeast of Easter Island") is said as is, other places take the article; Title Case on screen and in titles
   const dirige = !m && DIRIGE.test(d.lieu);
-  const pres = m ? `near ${ref}` : dirige ? d.lieu : `${article} ${d.lieu}`;
+  const pres = m ? `near ${ref}` : dirige ? d.lieu : `${article} ${d.lieu.replace(/ region$/, "")}`;
   const region = ref ?? titreLieu(d.lieu.replace(/ region$/, ""));
   const peuProfond = d.prof_km < 70, enMer = !surTerre(d.lon, d.lat);
   // Depth fixed by the USGS analyst (not computed): "Shallow, Not Determined" (choice of the user, 29/10/2026; "Not Yet Measured" until 30/10: most fixed depths stay fixed after review); a fixed deep value stays a figure, marked as estimated
@@ -53,7 +53,7 @@ export function textes(d) {
   const hIG = uniques([local, tag(pays), tag("Earthquake " + pays), variante(id, "ac", H.actu), sism1, destructeur ? H.large_destructeur : villeTag]);
   const hFB = uniques([local, ...lieux.slice(0, 2), "#Earthquake"]);
 
-  const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : dirige ? region : (surDorsale ? "on the " : "in the ") + region}`;
+  const titre = `${c.emoji} M${M} Earthquake ${m ? "Near " + ref : dirige ? region : (article === "near" ? "Near" : article) + " " + region}`;
   const lignes = [
     `📍 ${ligneLieu}`,
     horaireMer ? `🕐 ${utc} UTC, ${moisUtc}` : `🕐 ${heure} Local, ${mois} ${jour}`,
