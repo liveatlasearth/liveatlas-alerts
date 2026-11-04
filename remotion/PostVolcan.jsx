@@ -3,7 +3,7 @@
 // Also the "On This Day" and "Volcano Spotlight" posts (src/rubriques.mjs); t.compte "seismes" gives the earthquake header and marker.
 import React from "react";
 import { AbsoluteFill, Img, staticFile } from "remotion";
-import { F, usePolices } from "./commun.jsx";
+import { F, mesure, usePolices } from "./commun.jsx";
 import { boiteFiche, Carte, Ico, projeter, reserveFiche, useDonnees } from "./PostSeisme.jsx";
 
 const Haut = ({ t, largeur }) => (
@@ -26,6 +26,9 @@ const Fiche = ({ t, x, y, W, min }) => {
     </>
   );
 };
+// Size of the fact values: the largest that keeps every fact on one line in the width (e.g. "Marine Warning Around the Volcano")
+const tailleFaits = (faits, largeur) => [62, 54, 46, 40, 34].find((s) => faits.reduce((l, [, v, lib]) =>
+  l + 60 + Math.max(mesure(String(v), `800 ${s}px ${F.titre}`), mesure(lib, `600 30px ${F.texte}`)), 36 * (faits.length - 1)) <= largeur) ?? 34;
 const Bloc = ({ t, largeur, style }) => (
   <div style={{ position: "absolute", display: "flex", flexDirection: "column", gap: 16, width: largeur, ...style }}>
     <span style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 12, background: t.couleur, color: "#0b141c", font: `800 34px ${F.titre}`, letterSpacing: ".04em", padding: "8px 24px", borderRadius: 40, marginBottom: 12 }}>
@@ -36,7 +39,7 @@ const Bloc = ({ t, largeur, style }) => (
       <div style={{ display: "flex", gap: 36, marginTop: 6 }}>
         {t.faits.map(([ico, valeur, libelle]) => (
           <div key={libelle} style={{ display: "grid", gridTemplateColumns: "auto auto", columnGap: 14, rowGap: 4, alignItems: "center", justifyContent: "start" }}>
-            <Ico n={ico} taille={46} couleur={t.couleur} /><b style={{ font: `800 62px/1 ${F.titre}`, color: "#fff", whiteSpace: "nowrap" }}>{valeur}</b>
+            <Ico n={ico} taille={46} couleur={t.couleur} /><b style={{ font: `800 ${tailleFaits(t.faits, largeur)}px/1 ${F.titre}`, color: "#fff", whiteSpace: "nowrap" }}>{valeur}</b>
             <span /><span style={{ font: `600 30px ${F.texte}`, color: "#c9d6df", whiteSpace: "nowrap" }}>{libelle}</span>
           </div>
         ))}
@@ -70,6 +73,36 @@ export const PostVolcan = ({ dossier, t, format }) => {
       {pt && <Fiche t={t} x={pt[0]} y={pt[1]} W={W} />}
       <Haut t={t} largeur={968} />
       <Bloc t={t} largeur={968} style={{ left: 56, bottom: 110 }} />
+      <Pied />
+    </AbsoluteFill>
+  );
+};
+
+// Second image of the Spotlight and On This Day posts: the volcano seen from space (src/satellite.mjs), 1080 × 1350, about
+// 34 × 42 km centered on the summit. Corner marks around the summit (never over it), date and satellite, scale bar.
+export const VueSatellite = ({ dossier, t }) => {
+  const pret = usePolices();
+  if (!pret) return <AbsoluteFill style={{ background: "#0b141c" }} />;
+  const W = 1080, H = 1350, km = W / 33.6, r = 74, b = 26;
+  const coin = (sx, sy) => <path key={`${sx}${sy}`} d={`M${W / 2 + sx * r} ${H / 2 + sy * (r - b)}V${H / 2 + sy * r}H${W / 2 + sx * (r - b)}`} />;
+  return (
+    <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
+      <Img src={staticFile(`${dossier}/satellite.jpg`)} style={{ position: "absolute", inset: 0, width: W, height: H, objectFit: "cover" }} />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(11,20,28,.82) 0%,rgba(11,20,28,0) 14%,rgba(11,20,28,0) 66%,rgba(11,20,28,.88) 84%,#0b141c 100%)" }} />
+      <svg width={W} height={H} style={{ position: "absolute", inset: 0 }} fill="none" stroke={t.couleur} strokeWidth={5} strokeLinecap="square">
+        {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sy]) => coin(sx, sy))}
+      </svg>
+      <Haut t={t} largeur={968} />
+      <div style={{ position: "absolute", right: 56, top: 150, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+        <span style={{ font: `500 22px ${F.mono}`, letterSpacing: ".08em", color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,.8)" }}>5 km · 3.1 mi</span>
+        <div style={{ width: 5 * km, height: 10, border: "3px solid #fff", borderTop: "none", filter: "drop-shadow(0 1px 3px rgba(0,0,0,.8))" }} />
+      </div>
+      <div style={{ position: "absolute", left: 56, right: 56, bottom: 92, display: "flex", flexDirection: "column", gap: 14 }}>
+        <span style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 12, background: t.couleur, color: "#0b141c", font: `800 34px ${F.titre}`, letterSpacing: ".04em", padding: "8px 24px", borderRadius: 40, marginBottom: 6 }}>
+          <span style={{ width: 14, height: 14, borderRadius: 7, background: "#0b141c" }} />Seen From Space</span>
+        <div style={{ font: `800 ${[116, 104, 92, 80, 68, 58].find((s) => mesure(t.nom, `800 ${s}px ${F.titre}`, -0.03 * s) <= 968) ?? 58}px/.95 ${F.titre}`, letterSpacing: "-.03em", color: "#fff", whiteSpace: "nowrap" }}>{t.nom}</div>
+        <div style={{ font: `500 24px ${F.mono}`, letterSpacing: ".1em", textTransform: "uppercase", color: "#e3eaef" }}>{t.satLigne}</div>
+      </div>
       <Pied />
     </AbsoluteFill>
   );

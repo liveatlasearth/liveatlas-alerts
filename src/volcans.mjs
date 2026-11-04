@@ -99,8 +99,8 @@ export function textesVolcan(d) {
     emoji = niv >= 5 ? "🟣" : niv >= 4 ? "🔴" : "🟠"; couleur = niv >= 5 ? "#B0124A" : niv >= 4 ? "#E5303A" : "#F2A93B";
     pastille = nat ? nat.pastille : `Alert Level ${niv}`;
   }
-  const titre = d.cas === "eruption" ? `🌋 New Eruption at ${court}${d.pays ? `, ${d.pays}` : ""}`
-    : d.cas === "etat" ? `🌋 ${court} ${d.statut === "eruption" ? "Is Erupting" : "Shows Unrest"}${d.pays ? `, ${d.pays}` : ""}`
+  const titre = d.cas === "eruption" ? `🌋 New Eruption at ${court}${d.pays && d.pays !== court ? `, ${d.pays}` : ""}`
+    : d.cas === "etat" ? `🌋 ${court} ${d.statut === "eruption" ? "Is Erupting" : "Shows Unrest"}${d.pays && d.pays !== court ? `, ${d.pays}` : ""}`
     : d.manuel ? `${emoji} ${court} at ${pastille}` : `${emoji} ${court} Raised to ${pastille}`;
   const coords = `${Math.abs(d.lat).toFixed(2)}°${d.lat >= 0 ? "N" : "S"} ${Math.abs(d.lon).toFixed(2)}°${d.lon >= 0 ? "E" : "W"}`;
 
@@ -108,7 +108,7 @@ export function textesVolcan(d) {
   const H = HASHTAGS.volcans, [langue = "en", paysLocal] = (d.pays && HASHTAGS.pays[d.pays === "United States" ? "United States" : d.pays]) || [];
   const local = HASHTAGS.langues[langue]?.volcan?.[0] ?? HASHTAGS.langues.en.volcan[0];
   const lieux = [tag(court), d.region ? tag(d.region) : null, d.pays ? tag(d.pays) : null, paysLocal ? tagLocal(paysLocal) : null].filter(Boolean);
-  const ou = [d.region, d.pays].filter(Boolean).join(", ");
+  const ou = [d.region, d.pays].filter((x) => x && x !== court).join(", ");
   const v1 = variante(d.id, "v1", H.sismiques);
   const u = (l) => [...new Set(l.filter(Boolean))].join(" ");
   // Instagram, 6 tags at most (hashtag study of Oct 31, 2026): local word, "Name Volcano" (#MayonVolcano, searched), state or province,

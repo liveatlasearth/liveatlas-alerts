@@ -49,13 +49,14 @@ export async function imagesVolcan(d, ecran, sortie) {
   return faits;
 }
 
-// Regular posts (src/rubriques.mjs): one 1080 × 1350 image, "rubrique" (world map and list) or "volcan-carre" (one place card)
-export async function imageRubrique(id, composition, t, sortie) {
+// Regular posts (src/rubriques.mjs): one 1080 × 1350 image, "rubrique" (world map and list), "volcan-carre" (one place card)
+// or "volcan-satellite" (the second image, seen from space)
+export async function imageRubrique(id, composition, t, sortie, fichier = "post-4x5.jpg") {
   const url = await preparer(), inputProps = { dossier: `evenements/${id}`, t };
   synchroniser(id); mkdirSync(sortie, { recursive: true });
   const c = await selectComposition({ serveUrl: url, id: composition, inputProps });
-  await renderStill({ composition: c, serveUrl: url, frame: 0, inputProps, output: join(sortie, "post-4x5.jpg"), imageFormat: "jpeg", jpegQuality: 92 });
-  return ["post-4x5.jpg"];
+  await renderStill({ composition: c, serveUrl: url, frame: 0, inputProps, output: join(sortie, fichier), imageFormat: "jpeg", jpegQuality: 92 });
+  return [fichier];
 }
 
 export async function reel(d, ecran, narration, sortie) {

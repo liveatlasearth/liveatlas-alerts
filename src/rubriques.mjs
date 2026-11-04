@@ -13,6 +13,7 @@ import { ajusterX, classe, COMPTES, json, lireJson, nf, RACINE, SEUILS, titreLie
 import { geoAutour } from "./donnees.mjs";
 import { donneesVolcan, lireVolcans, textesVolcan } from "./volcans.mjs";
 import { imageRubrique } from "./rendre.mjs";
+import { vueSatellite } from "./satellite.mjs";
 
 const SITE = "https://www.liveatlas.earth", R = SEUILS.rubriques, SORTIE = join(RACINE, "sortie");
 const MOIS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -103,20 +104,22 @@ async function spotlight(volcans, jour, etat) {
   const v = libres.length ? variante(new Date(jour).toISOString().slice(0, 10), "spot", libres) : null;
   if (!v) return null;
   const d = await donneesVolcan(v, "etat"), txt = textesVolcan(d), court = d.nom.replace(/\s*\(.*\)$/, "");
-  const titre = `🔦 Volcano Spotlight: ${court}${d.pays ? `, ${d.pays}` : ""}`;
+  const titre = `🔦 Volcano Spotlight: ${court}${d.pays && d.pays !== court ? `, ${d.pays}` : ""}`;
   const legendes = Object.fromEntries(Object.entries(txt.legendes).map(([r, s]) => [r, s.replace(/^[^\n]*/, titre)]));
-  return { volcanId: v.id, dossier: d.id, composition: "volcan-carre", type: "volcan", ecran: { ...txt.ecran, pastille: "Volcano Spotlight" }, legendesPretes: legendes, lien: d.lien, titre };
+  const satellite = await vueSatellite(d.lon, d.lat, join(RACINE, "public", "evenements", d.id, "satellite.jpg")).catch(() => null);
+  return { volcanId: v.id, dossier: d.id, composition: "volcan-carre", type: "volcan", ecran: { ...txt.ecran, pastille: "Volcano Spotlight" }, legendesPretes: legendes, lien: d.lien, titre, satellite };
 }
 
-function ceJourVolcan(jour) {
+async function ceJourVolcan(jour) {
   const md = new Date(jour).toISOString().slice(5, 10), liste = lireJson("donnees", "ce-jour.json").eruptions.filter((e) => e[0] === md);
   const e = liste.sort((a, b) => (b[4] ?? -1) - (a[4] ?? -1) || (b[5] ?? 0) - (a[5] ?? 0))[0];
   if (!e) return null;
   const [, annee, nom, pays, vei, morts, slug, lon, lat] = e, quand = `${MOIS[+md.slice(0, 2) - 1]} ${+md.slice(3)}, ${annee}`, taille = TAILLE(vei);
   const id = `ce-jour-v-${md}`;
   ecrireJson(join(RACINE, "public", "evenements", id, "donnees.json"), { id, lon, lat, geo: geoAutour(lon, lat) }, false);
+  const satellite = await vueSatellite(lon, lat, join(RACINE, "public", "evenements", id, "satellite.jpg")).catch(() => null);
   return {
-    dossier: id, composition: "volcan-carre", type: "volcan",
+    dossier: id, composition: "volcan-carre", type: "volcan", satellite,
     ecran: { compte: "volcans", couleur: "#F2A93B", date: dateCourte(jour), pastille: "On This Day", nom, pays, ligne2: `Erupted ${quand}`, coords: `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"} ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`,
       faits: [...(taille ? [["gauge", taille, "Eruption Size"]] : []), ...(morts ? [["users", nf.format(morts), morts === 1 ? "Death" : "Deaths"]] : [])] },
     titre: `📅 On This Day in ${annee}: ${nom} Erupted, ${pays}`,
@@ -183,6 +186,12 @@ async function ecrire(id, p, jour) {
   mkdirSync(sortie, { recursive: true });
   if (!p.dossier) { const { monde, plaques } = geoAutour(0, 0); ecrireJson(join(RACINE, "public", "evenements", id, "donnees.json"), { id, geo: { monde, plaques } }, false); }
   const fichiers = await imageRubrique(dossier, p.composition, p.ecran, sortie), txt = { type: p.type, lien: p.lien, legendes: p.legendesPretes ?? legendes(p) };
+  // Second image, the volcano seen from space (src/satellite.mjs), with its satellite and date in the Instagram and Facebook captions
+  if (p.satellite) {
+    const { date, capteur, credit } = p.satellite, quand = dateCourte(Date.parse(date + "T12:00:00Z"));
+    fichiers.push(...await imageRubrique(dossier, "volcan-satellite", { ...p.ecran, satLigne: `${capteur} Satellite, ${quand}` }, sortie, "post-4x5-satellite.jpg"));
+    for (const r of ["instagram", "facebook"]) txt.legendes[r] = txt.legendes[r].replace(/\n\n(🗺️|👇)/u, `\n🛰️ Satellite View: ${capteur}, ${quand} (${credit})\n\n$1`);
+  }
   const publier = R.publier, reseaux = publier ? ["x", "instagram", "facebook"] : [];
   writeFileSync(join(sortie, "legendes.json"), JSON.stringify(txt, null, 1));
   writeFileSync(join(sortie, "reseaux.txt"), reseaux.join(",") || "brouillon");
@@ -208,7 +217,7 @@ export async function rubriques(etat, maintenant, faitsDuJour, manuel) {
   if (sorte && ["erupting", "spotlight", "onthisday", "alertes", "semaine"].includes(sorte)) {
     const volcans = await lireVolcans();
     let p = sorte === "erupting" ? await eruptingNow(volcans, jour) : sorte === "alertes" ? await alertLevels(volcans, jour)
-      : sorte === "semaine" ? (await cetteSemaine(volcans, jour).catch(() => null) ?? await eruptingNow(volcans, jour)) : sorte === "onthisday" ? ceJourVolcan(jour) : null;
+      : sorte === "semaine" ? (await cetteSemaine(volcans, jour).catch(() => null) ?? await eruptingNow(volcans, jour)) : sorte === "onthisday" ? await ceJourVolcan(jour) : null;
     if (!p) p = await spotlight(volcans, jour, etat);
     if (p) {
       console.log(`\n== Rubrique volcans ${date} : ${sorte}${p.volcanId ? ` (${p.volcanId})` : ""}`);
