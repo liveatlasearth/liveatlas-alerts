@@ -231,8 +231,8 @@
     "heure_rubriques_utc": "15:00"
   },
   "rubriques": {
-    "_lisez_moi": "Posts réguliers des deux comptes (src/rubriques.mjs), décidés le 04/11/2026 pour publier tous les jours. Volcans à partir de volcans_heure_utc : lundi Erupting Now, mardi Volcano Spotlight, mercredi On This Day, jeudi Alert Levels, vendredi Volcanoes This Week (rapport Smithsonian/USGS s il a moins de 8 jours, sinon Erupting Now), samedi On This Day, dimanche Volcano Spotlight ; On This Day sans éruption connue ce jour-là = Spotlight. Séismes : Earthquakes of the Day (M4.5+ du jour UTC écoulé) dès 00:15 UTC ; On This Day dès 18:00 UTC si aucun post Instagram séisme ce jour-là. publier=false : seulement une issue pour relecture.",
-    "publier": false,
+    "_lisez_moi": "Posts réguliers des deux comptes (src/rubriques.mjs), décidés le 04/11/2026 pour publier tous les jours. Volcans à partir de volcans_heure_utc : lundi Erupting Now, mardi Volcano Spotlight, mercredi On This Day, jeudi Alert Levels, vendredi Volcanoes This Week (rapport Smithsonian/USGS s il a moins de 8 jours, sinon Erupting Now), samedi On This Day, dimanche Volcano Spotlight ; On This Day sans éruption connue ce jour-là = Spotlight. Séismes : Earthquakes of the Day (M4.5+ du jour UTC écoulé) dès 00:15 UTC ; On This Day dès 18:00 UTC si aucun post Instagram séisme ce jour-là. publier=true depuis le 04/11/2026 (visuels validés) ; false = seulement une issue pour relecture.",
+    "publier": true,
     "volcans_heure_utc": 15,
     "seismes_du_jour_minute_utc": 15,
     "ce_jour_seismes_heure_utc": 18
