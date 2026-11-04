@@ -21,6 +21,7 @@ const lire = (f) => { try { return JSON.parse(readFileSync(f, "utf8")); } catch 
 const etat = lire(ETAT), etatV = lire(ETAT_V), maintenant = Date.now(), aujourdhui = new Date().toISOString().slice(0, 10);
 mkdirSync(SORTIE, { recursive: true });
 const manuel = process.argv[2];
+if (manuel && !/^(v?[a-z0-9]{2,30}|hebdo:\d{4}-\d\d-\d\d)$/.test(manuel)) throw new Error(`Identifiant refusé : ${manuel}`);
 const resume = [];
 
 // ---------- Earthquakes ----------
@@ -66,7 +67,7 @@ for (const e of liste.slice(0, 4)) {
 // A failure here (site data briefly unavailable) must never block the earthquake alerts: logged, retried at the next run
 if (!manuel || manuel.startsWith("v")) try {
   const volcans = await lireVolcans();
-  let listeV;
+  let listeV, avantDetection;
   if (manuel) {
     const v = volcans.find((x) => `v${x.id}` === manuel);
     if (!v) throw new Error(`Volcan ${manuel} absent des données du site (seuls les volcans en éruption ou en alerte y sont)`);
@@ -76,6 +77,7 @@ if (!manuel || manuel.startsWith("v")) try {
     listeV = [{ id: manuel, volcan: v, cas, reseaux: ["x", "instagram", "facebook"] }];
   } else {
     if (!etatV._init) { memoriser(volcans, etatV); etatV._init = new Date().toISOString(); console.log("Volcans : initialisation, rien publié"); }
+    avantDetection = structuredClone(etatV);
     listeV = detecterVolcans(volcans, etatV, maintenant);
   }
   for (const e of listeV.slice(0, 3)) {
@@ -87,7 +89,12 @@ if (!manuel || manuel.startsWith("v")) try {
     brouillon(e, d, txt, fichiers, sortie);
     resume.push({ id: e.id, nom: d.nom, cas: e.cas, reseaux: e.reseaux, fichiers });
   }
-  if (!manuel) { memoriser(volcans, etatV); ecrireJson(ETAT_V, etatV); }
+  if (!manuel) {
+    memoriser(volcans, etatV);
+    // Beyond the 3 posted this run: old state kept, so they are detected again and posted at the next run
+    for (const e of listeV.slice(3)) etatV[e.volcan.id] = avantDetection[e.volcan.id];
+    ecrireJson(ETAT_V, etatV);
+  }
 } catch (e) { if (manuel) throw e; console.log("Volcans : données indisponibles, on réessaie au prochain passage :", e.message); }
 
 // ---------- Weekly reel "This Week in Earthquakes" (Wednesday 12:00 PM New York time) ----------

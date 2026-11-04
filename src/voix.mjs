@@ -23,6 +23,7 @@ export async function voix(texte, sortieMp3, voix = "chris") {
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOIX[voix]}/with-timestamps?output_format=mp3_44100_128`, {
     method: "POST", headers: { "xi-api-key": cle, "content-type": "application/json" },
     body: JSON.stringify({ text: texte, model_id: "eleven_v4", language_code: "en", voice_settings: { stability: 0.4 } }),
+    signal: AbortSignal.timeout(120000),
   });
   if (!r.ok) throw new Error(`ElevenLabs ${r.status} ${await r.text()}`);
   const j = await r.json();

@@ -6,7 +6,8 @@ const API = "https://graph.facebook.com/v26.0";
 
 async function graph(chemin, params = {}, methode = "POST", jeton) {
   const url = new URL(API + chemin), corps = new URLSearchParams({ ...params, access_token: jeton });
-  const r = methode === "GET" ? await fetch(`${url}?${corps}`) : await fetch(url, { method: "POST", body: corps });
+  const signal = AbortSignal.timeout(60000);
+  const r = methode === "GET" ? await fetch(`${url}?${corps}`, { signal }) : await fetch(url, { method: "POST", body: corps, signal });
   const j = await r.json();
   if (!r.ok || j.error) throw new Error(`Meta ${chemin} : ${j.error?.message ?? r.status}`);
   return j;
@@ -54,7 +55,7 @@ export async function carrouselInstagram({ ig }, imagesUrl, legende, jeton) {
 
 export async function reelFacebook({ page }, videoUrl, legende, jeton) {
   const { video_id } = await graph(`/${page}/video_reels`, { upload_phase: "start" }, "POST", jeton);
-  const r = await fetch(`https://rupload.facebook.com/video-upload/v26.0/${video_id}`, { method: "POST", headers: { Authorization: `OAuth ${jeton}`, file_url: videoUrl } });
+  const r = await fetch(`https://rupload.facebook.com/video-upload/v26.0/${video_id}`, { method: "POST", headers: { Authorization: `OAuth ${jeton}`, file_url: videoUrl }, signal: AbortSignal.timeout(120000) });
   if (!r.ok) throw new Error(`Facebook : envoi de la vidéo refusé (${r.status} ${await r.text()})`);
   for (let i = 0; i < 60; i++) {
     const s = await graph(`/${video_id}`, { fields: "status" }, "GET", jeton);

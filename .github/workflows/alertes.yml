@@ -45,7 +45,9 @@ jobs:
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           RESEAUX: ${{ inputs.reseaux }}
-        run: node src/principal.mjs ${{ inputs.id }}
+          # Through the environment, never pasted into the shell line (a crafted id would run as a command)
+          ID: ${{ inputs.id }}
+        run: node src/principal.mjs $ID
       - name: One release per alert (public direct downloads)
         if: hashFiles('sortie/*/issue.md') != ''
         env:
@@ -58,11 +60,24 @@ jobs:
           done
       - name: Publish on Instagram and Facebook
         continue-on-error: true
+        # Leaves time inside the job's 50 minutes for "Remember what was posted"
+        timeout-minutes: 30
         if: inputs.reseaux == 'verifier' || (hashFiles('sortie/*/issue.md') != '' && (inputs.id == '' || inputs.reseaux != ''))
         env:
           META_PAGE_TOKEN_SEISMES: ${{ secrets.META_PAGE_TOKEN_SEISMES }}
           RESEAUX: ${{ inputs.reseaux }}
         run: node src/publier-meta.mjs "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/alert-{id}-$GITHUB_RUN_ID"
+      # Right after publishing, and even if a step failed or the job ran out of time: posts already out must never go out twice.
+      # principal.mjs writes etat/ only at its very end, so a failed detection leaves nothing to commit.
+      - name: Remember what was posted
+        if: ${{ always() && inputs.id == '' }}
+        run: |
+          git config user.name "liveatlas-alerts"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add etat/publies.json etat/volcans.json
+          git diff --cached --quiet && exit 0
+          git commit -m "State $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0; sleep 5; done; exit 1
       - name: One issue per alert
         if: hashFiles('sortie/*/issue.md') != ''
         env:
@@ -82,12 +97,3 @@ jobs:
             } > "$d/issue-complet.md"
             gh issue create --title "$(cat "$d/titre.txt")" --body-file "$d/issue-complet.md"
           done
-      - name: Remember what was posted
-        if: inputs.id == ''
-        run: |
-          git config user.name "liveatlas-alerts"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add etat/publies.json etat/volcans.json
-          git diff --cached --quiet && exit 0
-          git commit -m "State $(date -u +%Y-%m-%dT%H:%MZ)"
-          for i in 1 2 3; do git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0; sleep 5; done; exit 1

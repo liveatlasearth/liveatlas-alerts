@@ -11,7 +11,7 @@ export const COMPTES = lireJson("config", "comptes.json");
 export async function json(url, essais = 3) {
   for (let i = 1; ; i++) {
     try {
-      const r = await fetch(url, { headers: { "user-agent": "liveatlas-alerts (+https://www.liveatlas.earth)" } });
+      const r = await fetch(url, { headers: { "user-agent": "liveatlas-alerts (+https://www.liveatlas.earth)" }, signal: AbortSignal.timeout(30000) });
       if (!r.ok) throw new Error(`${r.status} ${url}`);
       return await r.json();
     } catch (e) { if (i >= essais) throw e; await new Promise((ok) => setTimeout(ok, 2000 * i)); }

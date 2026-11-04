@@ -14,7 +14,8 @@ export const pays = (lieu = "") => nomPropre(lieu.split(",").pop().trim().replac
 export const auxUSA = (lieu = "") => { const p = pays(lieu); return ETATS.includes(p) || /\b(Alaska|Hawaii)\b/.test(lieu); };
 
 export function reseaux(q) {
-  const { mag, place, alert } = q.properties, p = pays(place), usa = auxUSA(place);
+  // Thresholds on the magnitude as posted (one decimal): an ml 4.96 shown as "M5.0" is treated as M5.0
+  const { place, alert } = q.properties, mag = Math.round(q.properties.mag * 10) / 10, p = pays(place), usa = auxUSA(place);
   const seuilZone = usa ? 4.0 : ZONES_FOCUS[p] ?? S.reste_du_monde_magnitude_min;
   if (mag < seuilZone) return [];
   const r = ["x"];

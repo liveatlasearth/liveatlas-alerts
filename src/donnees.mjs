@@ -48,7 +48,7 @@ export async function donnees(id) {
   const gibs = (c) => `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${c}&CRS=EPSG:4326&BBOX=${bbox}&WIDTH=1080&HEIGHT=960&FORMAT=image/jpeg`;
   const lendemain = new Date(P.time + 86400e3).toISOString().slice(0, 10), jourDispo = Date.now() - P.time > 30 * 3600e3;
   const sat = jourDispo ? { fichier: "sat-jour.jpg", couche: `MODIS_Terra_CorrectedReflectance_TrueColor&TIME=${lendemain}`, jour: lendemain } : { fichier: "sat-blue-marble.jpg", couche: "BlueMarble_NextGeneration", jour: null };
-  const r = await fetch(gibs(sat.couche)); mkdirSync(dossier, { recursive: true });
+  const r = await fetch(gibs(sat.couche), { signal: AbortSignal.timeout(60000) }); mkdirSync(dossier, { recursive: true });
   if (r.ok) { writeFileSync(join(dossier, sat.fichier), Buffer.from(await r.arrayBuffer())); }
 
   const ex = expo?.population_exposure?.aggregated_exposure ?? [];

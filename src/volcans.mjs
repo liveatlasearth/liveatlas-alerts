@@ -13,9 +13,10 @@ const COULEURS = ["GREEN", "YELLOW", "ORANGE", "RED"];
 let PAYS_NE = null;
 const paysEn = (fr) => { if (!fr) return null; const f = (PAYS_NE ??= lireJson("donnees", "ne_pays_50m.geojson").features).find((x) => x.properties.NAME_FR === fr); return f ? ({ "United States of America": "United States", "Dem. Rep. Congo": "DR Congo", "Heard I. and McDonald Is.": "Heard Island" }[f.properties.NAME] ?? f.properties.NAME) : null; };
 
-// Alert levels of one volcano as comparable numbers
+// Alert levels of one volcano as comparable numbers. An agency absent from the data gives no key at all (not 0), so the remembered
+// level stays: one refresh without Sakurajima's JMA entry must not turn the next one into a "Raised to Level 3"
 export const niveaux = (v) => {
-  const n = { usgs: 0, jma: 0, geonet: 0 };
+  const n = {};
   for (const a of v.alertes ?? []) {
     if (a.organisme === "USGS") n.usgs = COULEURS.indexOf(a.couleur) + 1;
     // JMA: codes 11 to 15 are the numbered levels 1 to 5. Other codes (22 "Danger Around the Crater", 36 "Marine Warning…")
@@ -38,9 +39,9 @@ export function detecterVolcans(volcans, etat, maintenant = Date.now()) {
     if (!avant) continue; // first time seen: remembered below, never posted (no flood at start)
     let cas = null;
     if (eruption && !avant.eruption && v.depuis && maintenant - Date.parse(v.depuis) < 60 * 86400e3) cas = "eruption";
-    else if (n.usgs >= 3 && n.usgs > avant.usgs) cas = "usgs";
-    else if (n.jma >= 3 && n.jma > avant.jma) cas = "jma";
-    else if (n.geonet >= 3 && n.geonet > avant.geonet) cas = "geonet";
+    else if (n.usgs >= 3 && n.usgs > (avant.usgs ?? 0)) cas = "usgs";
+    else if (n.jma >= 3 && n.jma > (avant.jma ?? 0)) cas = "jma";
+    else if (n.geonet >= 3 && n.geonet > (avant.geonet ?? 0)) cas = "geonet";
     // National observatories: a raise to the source's threshold or above. A level never remembered is only remembered (a new source
     // must not post every volcano already in alert), except PHIVOLCS, plugged in for Mayon's raise of Oct 30, 2026
     else for (const a of v.alertes ?? []) {
