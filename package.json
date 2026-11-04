@@ -5,7 +5,8 @@
   "description": "Live Atlas alert engine: detects significant earthquakes from official open data and builds the images, reels and captions for @LiveAtlasQuakes.",
   "scripts": {
     "alertes": "node src/principal.mjs",
-    "studio": "remotion studio remotion/index.jsx"
+    "studio": "remotion studio remotion/index.jsx",
+    "test": "node --test \"test/*.test.mjs\""
   },
   "dependencies": {
     "@remotion/bundler": "4.0.535",
