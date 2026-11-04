@@ -1,5 +1,6 @@
 // Still images of a volcano alert for @LiveAtlasErupts, after the validated templates: "carre" 1080 × 1350, "x" 1600 × 900.
 // Pill (New Eruption / Alert Level 3), volcano name, country in color then "Erupting Since …", alert facts with icons.
+// Also the "On This Day" and "Volcano Spotlight" posts (src/rubriques.mjs); t.compte "seismes" gives the earthquake header and marker.
 import React from "react";
 import { AbsoluteFill, Img, staticFile } from "remotion";
 import { F, usePolices } from "./commun.jsx";
@@ -7,8 +8,8 @@ import { boiteFiche, Carte, Ico, projeter, reserveFiche, useDonnees } from "./Po
 
 const Haut = ({ t, largeur }) => (
   <div style={{ position: "absolute", left: 56, top: 46, width: largeur, display: "flex", alignItems: "center", gap: 18 }}>
-    <Img src={staticFile("pastilles/volcans.svg")} style={{ width: 76, height: 76, borderRadius: "50%" }} />
-    <span style={{ font: `600 32px ${F.titre}`, color: "#fff", flex: 1 }}>Live Atlas <span style={{ color: t.couleur }}>Volcano</span></span>
+    <Img src={staticFile(`pastilles/${t.compte ?? "volcans"}.svg`)} style={{ width: 76, height: 76, borderRadius: "50%" }} />
+    <span style={{ font: `600 32px ${F.titre}`, color: "#fff", flex: 1 }}>Live Atlas <span style={{ color: t.couleur }}>{t.compte === "seismes" ? "Earthquake" : "Volcano"}</span></span>
     <span style={{ font: `500 24px ${F.mono}`, letterSpacing: ".1em", color: "#b9c7d0", textTransform: "uppercase" }}>{t.date}</span>
   </div>
 );
@@ -29,7 +30,7 @@ const Bloc = ({ t, largeur, style }) => (
   <div style={{ position: "absolute", display: "flex", flexDirection: "column", gap: 16, width: largeur, ...style }}>
     <span style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 12, background: t.couleur, color: "#0b141c", font: `800 34px ${F.titre}`, letterSpacing: ".04em", padding: "8px 24px", borderRadius: 40, marginBottom: 12 }}>
       <span style={{ width: 14, height: 14, borderRadius: 7, background: "#0b141c" }} />{t.pastille}</span>
-    <div style={{ font: `800 ${t.nom.length > 12 ? 96 : 116}px/.95 ${F.titre}`, letterSpacing: "-.03em", color: "#fff" }}>{t.nom}</div>
+    <div style={{ font: `800 ${t.nom.length > 18 ? 76 : t.nom.length > 12 ? 96 : 116}px/.95 ${F.titre}`, letterSpacing: "-.03em", color: "#fff" }}>{t.nom}</div>
     <div style={{ font: `700 56px/1.12 ${F.titre}`, color: "#fff" }}>{t.pays && <span style={{ color: t.couleur }}>{t.pays}</span>}{t.pays && <br />}{t.ligne2}</div>
     {t.faits.length > 0 && (
       <div style={{ display: "flex", gap: 36, marginTop: 6 }}>
@@ -52,7 +53,7 @@ export const PostVolcan = ({ dossier, t, format }) => {
     const W = 1600, H = 900, cx = 0.71, cy = 0.38, zoom = 4, pt = projeter(d, W, H, cx, cy, zoom);
     return (
       <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
-        <Carte d={d} W={W} H={H} cx={cx} cy={cy} zoom={zoom} couleur={t.couleur} mode="volcan" reserve={[[0, 0, W * 0.5, H], ...reserveFiche(t.nom, [t.coords, t.pastille], pt, W, 940)]} />
+        <Carte d={d} W={W} H={H} cx={cx} cy={cy} zoom={zoom} couleur={t.couleur} mode={t.compte === "seismes" ? "seisme" : "volcan"} reserve={[[0, 0, W * 0.5, H], ...reserveFiche(t.nom, [t.coords, t.pastille], pt, W, 940)]} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,#0b141c 0%,#0b141c 40%,rgba(11,20,28,.55) 47%,rgba(11,20,28,0) 56%)" }} />
         {pt && <Fiche t={t} x={pt[0]} y={pt[1]} W={W} min={940} />}
         <Haut t={t} largeur={860} />
@@ -64,7 +65,7 @@ export const PostVolcan = ({ dossier, t, format }) => {
   const W = 1080, H = 1350, cy = 0.29, zoom = 4, pt = projeter(d, W, H, 0.5, cy, zoom);
   return (
     <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
-      <Carte d={d} W={W} H={H} cx={0.5} cy={cy} zoom={zoom} couleur={t.couleur} mode="volcan" reserve={reserveFiche(t.nom, [t.coords, t.pastille], pt, W)} />
+      <Carte d={d} W={W} H={H} cx={0.5} cy={cy} zoom={zoom} couleur={t.couleur} mode={t.compte === "seismes" ? "seisme" : "volcan"} reserve={reserveFiche(t.nom, [t.coords, t.pastille], pt, W)} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(11,20,28,.8) 0%,rgba(11,20,28,0) 11%,rgba(11,20,28,0) 48%,rgba(11,20,28,.93) 60%,#0b141c 70%)" }} />
       {pt && <Fiche t={t} x={pt[0]} y={pt[1]} W={W} />}
       <Haut t={t} largeur={968} />

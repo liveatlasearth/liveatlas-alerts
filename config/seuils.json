@@ -93,18 +93,18 @@
     },
     "recap_quotidien": {
       "actif": true,
-      "heure_utc": "23:30",
+      "heure_utc": "00:15 (jour UTC écoulé)",
       "reseaux": [
         "x",
         "instagram",
         "facebook"
       ],
-      "contenu": "carrousel des séismes du jour (nombre, plus fort, carte)"
+      "contenu": "image des séismes M4.5+ du jour UTC écoulé (nombre, carte, 6 plus forts), voir rubriques"
     },
     "on_this_day": {
       "actif": true,
       "si": "aucun autre post ce jour-là à 18 h UTC",
-      "source": "donnees/prepare/seismes-pages.json (1 746 grands séismes, 364 jours couverts)",
+      "source": "liveatlas-alerts/donnees/ce-jour.json, copie allégée de donnees/prepare/seismes-pages.json (social/alertes/ce-jour.mjs)",
       "lien": "/earthquakes/<slug>/"
     },
     "recoupement": {
@@ -229,6 +229,13 @@
       }
     ],
     "heure_rubriques_utc": "15:00"
+  },
+  "rubriques": {
+    "_lisez_moi": "Posts réguliers des deux comptes (src/rubriques.mjs), décidés le 04/11/2026 pour publier tous les jours. Volcans à partir de volcans_heure_utc : lundi Erupting Now, mardi Volcano Spotlight, mercredi On This Day, jeudi Alert Levels, vendredi Volcanoes This Week (rapport Smithsonian/USGS s il a moins de 8 jours, sinon Erupting Now), samedi On This Day, dimanche Volcano Spotlight ; On This Day sans éruption connue ce jour-là = Spotlight. Séismes : Earthquakes of the Day (M4.5+ du jour UTC écoulé) dès 00:15 UTC ; On This Day dès 18:00 UTC si aucun post Instagram séisme ce jour-là. publier=false : seulement une issue pour relecture.",
+    "publier": false,
+    "volcans_heure_utc": 15,
+    "seismes_du_jour_minute_utc": 15,
+    "ce_jour_seismes_heure_utc": 18
   },
   "cyclones": {
     "_etat": "Plus tard (compte à décider). Idées : changements de catégorie, tempêtes à surveiller, trajectoire passée puis prévue (cône NHC, prévisions JTWC, pas encore dans les données du site).",

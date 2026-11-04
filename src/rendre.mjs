@@ -49,6 +49,15 @@ export async function imagesVolcan(d, ecran, sortie) {
   return faits;
 }
 
+// Regular posts (src/rubriques.mjs): one 1080 × 1350 image, "rubrique" (world map and list) or "volcan-carre" (one place card)
+export async function imageRubrique(id, composition, t, sortie) {
+  const url = await preparer(), inputProps = { dossier: `evenements/${id}`, t };
+  synchroniser(id); mkdirSync(sortie, { recursive: true });
+  const c = await selectComposition({ serveUrl: url, id: composition, inputProps });
+  await renderStill({ composition: c, serveUrl: url, frame: 0, inputProps, output: join(sortie, "post-4x5.jpg"), imageFormat: "jpeg", jpegQuality: 92 });
+  return ["post-4x5.jpg"];
+}
+
 export async function reel(d, ecran, narration, sortie) {
   const url = await preparer(), dossier = `evenements/${d.id}`;
   mkdirSync(sortie, { recursive: true });
