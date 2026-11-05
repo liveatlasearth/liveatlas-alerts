@@ -21,7 +21,7 @@ const dedans = ([lon, lat], poly) => {
 };
 
 // Pixels of an 8-bit RGBA PNG (what GIBS returns), as [r, g, b, a] rows; null for any other kind
-function pixels(png) {
+export function pixels(png) {
   const l = png.readUInt32BE(16), h = png.readUInt32BE(20);
   if (png[24] !== 8 || png[25] !== 6 || png[28] !== 0) return null;
   const morceaux = [];

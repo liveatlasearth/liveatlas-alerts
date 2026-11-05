@@ -107,3 +107,25 @@ export const VueSatellite = ({ dossier, t }) => {
     </AbsoluteFill>
   );
 };
+
+// Photo card of the On This Day posts (Nov 5, 2026): a free photo of the event (Wikimedia Commons, src/medias.mjs), full frame,
+// with the event and date, and the author and licence small at the bottom (CC BY asks for credit). t.photo: file in the event
+// folder, t.legende: line above the name ("November 7, 2012"), t.credit: "Author · CC BY-SA 3.0"
+export const PhotoCarre = ({ dossier, t }) => {
+  const pret = usePolices();
+  if (!pret) return <AbsoluteFill style={{ background: "#0b141c" }} />;
+  return (
+    <AbsoluteFill style={{ background: "#0b141c", overflow: "hidden" }}>
+      <Img src={staticFile(`${dossier}/${t.photo}`)} style={{ position: "absolute", inset: 0, width: 1080, height: 1350, objectFit: "cover" }} />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(11,20,28,.82) 0%,rgba(11,20,28,0) 14%,rgba(11,20,28,0) 58%,rgba(11,20,28,.9) 80%,#0b141c 100%)" }} />
+      <Haut t={t} largeur={968} />
+      <div style={{ position: "absolute", left: 56, right: 56, bottom: 92, display: "flex", flexDirection: "column", gap: 14 }}>
+        <span style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 12, background: t.couleur, color: "#0b141c", font: `800 34px ${F.titre}`, letterSpacing: ".04em", padding: "8px 24px", borderRadius: 40, marginBottom: 12 }}>
+          <span style={{ width: 14, height: 14, borderRadius: 7, background: "#0b141c" }} />{t.legende}</span>
+        <div style={{ font: `800 ${[104, 92, 80, 68, 58].find((s) => mesure(t.nom, `800 ${s}px ${F.titre}`, -0.03 * s) <= 968) ?? 58}px/.95 ${F.titre}`, letterSpacing: "-.03em", color: "#fff", whiteSpace: "nowrap" }}>{t.nom}</div>
+        <div style={{ font: `500 20px ${F.mono}`, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(227,234,239,.8)" }}>Photo: {t.credit}</div>
+      </div>
+      <Pied />
+    </AbsoluteFill>
+  );
+};

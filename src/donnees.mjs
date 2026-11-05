@@ -9,7 +9,7 @@ import { pays } from "./detecter.mjs";
 
 const arr = (n) => (a) => Array.isArray(a[0]) ? a.map(arr(n)) : [+a[0].toFixed(n), +a[1].toFixed(n)];
 let GEO = null;
-const geoMonde = () => GEO ??= { p50: lireJson("donnees", "ne_pays_50m.geojson"), p110: lireJson("donnees", "ne_pays_110m.geojson"), plaques: lireJson("donnees", "pb2002_frontieres.geojson") };
+const geoMonde = () => GEO ??= { p50: lireJson("donnees", "ne_pays_50m.geojson"), p110: lireJson("donnees", "ne_pays_110m.geojson"), plaques: lireJson("donnees", "pb2002_frontieres.geojson"), etiquettes: lireJson("public", "geo", "etiquettes.json") };
 const rad = (x) => x * Math.PI / 180, DIR = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
 const COURT = { "United States of America": "United States", "Dem. Rep. Congo": "DR Congo" };
 
@@ -20,6 +20,9 @@ export function geoAutour(lon, lat) {
     detail: { type: "FeatureCollection", features: G.p50.features.filter((f) => dans(f, 25)).map((f) => ({ type: "Feature", geometry: { type: f.geometry.type, coordinates: arr(3)(f.geometry.coordinates) } })) },
     monde: { type: "FeatureCollection", features: G.p110.features.map((f) => ({ type: "Feature", geometry: { type: f.geometry.type, coordinates: arr(2)(f.geometry.coordinates) } })) },
     plaques: { type: "FeatureCollection", features: G.plaques.features.map((f) => ({ type: "Feature", geometry: { type: f.geometry.type, coordinates: arr(2)(f.geometry.coordinates) } })) },
+    // Seas and US states near the point, named on the map too (Nov 5, 2026: the user could not tell where a post was)
+    mers: G.etiquettes.MERS.filter(([, x, y]) => Math.abs(((x - lon + 540) % 360) - 180) < 40 && Math.abs(y - lat) < 30),
+    etats: G.etiquettes.ETATS.filter(([, x, y]) => Math.abs(x - lon) < 25 && Math.abs(y - lat) < 18),
     pays: G.p110.features.map((f) => [COURT[f.properties.NAME] ?? f.properties.NAME, +f.properties.LABEL_X.toFixed(2), +f.properties.LABEL_Y.toFixed(2), f.properties.LABELRANK]).sort((a, b) => a[3] - b[3]),
   };
 }

@@ -31,7 +31,7 @@ for (const id of readdirSync(SORTIE)) {
     const fb = await essai("Facebook reel", () => reelFacebook(c, url("reel.mp4"), txt.legendes.facebook, jeton));
     if (!ig && !fb) echecs.push("reel"); // one of the two out: no retry, it would post that one twice
   }
-  const images = ["post-4x5.jpg", "post-4x5-secousses.jpg", "post-4x5-satellite.jpg"].filter(a).map(url);
+  const images = ["post-4x5.jpg", "post-4x5-secousses.jpg", "post-4x5-photo-1.jpg", "post-4x5-photo-2.jpg", "post-4x5-satellite.jpg"].filter(a).map(url);
   if (reseaux.includes("instagram") && c.ig && images.length && !(await essai("Instagram post", () => carrouselInstagram(c, images, txt.legendes.instagram, jeton)))) echecs.push("instagram");
   if (reseaux.includes("facebook") && images.length && !(await essai("Facebook post", () => photosFacebook(c, images, txt.legendes.facebook, jeton)))) echecs.push("facebook");
   const jt = await jetonThreads(txt.type === "volcan" ? "volcan" : "seisme").catch(() => null), video = reseaux.includes("reel") && a("reel.mp4");

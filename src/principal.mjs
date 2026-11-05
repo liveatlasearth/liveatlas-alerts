@@ -23,7 +23,7 @@ const lire = (f) => { try { return JSON.parse(readFileSync(f, "utf8")); } catch 
 const etat = lire(ETAT), etatV = lire(ETAT_V), maintenant = Date.now(), aujourdhui = new Date().toISOString().slice(0, 10);
 mkdirSync(SORTIE, { recursive: true });
 const manuel = process.argv[2];
-if (manuel && !/^(v?[a-z0-9]{2,30}|hebdo:\d{4}-\d\d-\d\d|rubrique:[a-z-]{4,20}(:\d{4}-\d\d-\d\d)?)$/.test(manuel)) throw new Error(`Identifiant refusé : ${manuel}`);
+if (manuel && !/^(v?[a-z0-9]{2,30}|hebdo:\d{4}-\d\d-\d\d|rubrique:[a-z-]{4,20}(:\d{4}-\d\d-\d\d(:\d{6})?)?)$/.test(manuel)) throw new Error(`Identifiant refusé : ${manuel}`);
 const resume = [];
 
 // ---------- Earthquakes ----------

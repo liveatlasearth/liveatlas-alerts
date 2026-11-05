@@ -69,6 +69,17 @@ export const Carte = ({ d, W, H, cx, cy, zoom, couleur, mode, reserve = [] }) =>
       if (!pos) continue; const [x, y] = pos; occupe.push([x - w / 2 - 10, y - 24, x + w / 2 + 10, y + 24]); n++;
       k.lineWidth = 6; k.strokeStyle = "rgba(19,42,61,.85)"; k.strokeText(nom, x, y); k.fillStyle = "rgba(232,238,242,.8)"; k.fillText(nom, x, y);
     }
+    // Then up to three seas (italic, blue) and US states (small), where there is room
+    let m = 0; const dits = new Set();
+    const proches = [...(d.geo.mers ?? []).map((e) => [e[0], e[1], e[2], "mer"]), ...(d.geo.etats ?? []).map((e) => [e[0], e[1], e[2], "etat"])].sort((a, b) => geoDistance([a[1], a[2]], [d.lon, d.lat]) - geoDistance([b[1], b[2]], [d.lon, d.lat]));
+    for (const [nom, x0, y0, sorte] of proches) {
+      if (m >= 3) break; if (dits.has(nom) || geoDistance([x0, y0], [d.lon, d.lat]) > 1.15) continue; const q = p([x0, y0]); if (!q) continue;
+      k.font = sorte === "mer" ? `italic 500 ${fs - 2}px Plex` : `600 ${fs - 6}px Plex`; const w = k.measureText(nom).width, libre = ([x, y]) => { const b = [x - w / 2 - 10, y - 22, x + w / 2 + 10, y + 22]; return !(b[0] < 20 || b[2] > W - 20 || b[1] < 140 || b[3] > limite || occupe.some((o) => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1])); };
+      // A sea is wide: its name can move around its label point
+      const pos = (sorte === "mer" ? [[0, 0], [0, -60], [0, 60], [-w / 2 - 60, 0], [w / 2 + 60, 0], [-w / 2 - 60, -60], [w / 2 + 60, 60]] : [[0, 0]]).map(([dx, dy]) => [q[0] + dx, q[1] + dy]).find(libre);
+      if (!pos) continue; const [x, y] = pos; occupe.push([x - w / 2 - 10, y - 22, x + w / 2 + 10, y + 22]); m++; dits.add(nom);
+      k.lineWidth = 6; k.strokeStyle = "rgba(19,42,61,.85)"; k.strokeText(nom, x, y); k.fillStyle = sorte === "mer" ? "rgba(140,190,225,.9)" : "rgba(232,238,242,.62)"; k.fillText(nom, x, y);
+    }
   }, [d, W, H, cx, cy, zoom, couleur, mode]);
   return <canvas ref={ref} width={W} height={H} style={{ position: "absolute", inset: 0, filter: "brightness(1.22) saturate(1.3) contrast(1.05)" }} />;
 };
