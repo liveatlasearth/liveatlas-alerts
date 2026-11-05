@@ -126,7 +126,8 @@ async function ceJourVolcan(jour) {
   const satellite = await vueSatellite(lon, lat, join(RACINE, "public", "evenements", id, "satellite.jpg")).catch(() => null);
   return {
     dossier: id, composition: "volcan-carre", type: "volcan", satellite,
-    ecran: { compte: "volcans", couleur: "#F2A93B", date: dateCourte(jour), pastille: "On This Day", nom, pays, ligne2: `Erupted ${quand}`, coords: `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"} ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`,
+    ecran: { compte: "volcans", couleur: "#F2A93B", date: "", pastille: "On This Day", nom, // no date of the day top right: it mixed up with the date of the event (user, Nov 5, 2026)
+      pays, ligne2: `Erupted ${quand}`, coords: `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"} ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`,
       faits: [...(taille ? [["gauge", taille, "Eruption Size"]] : []), ...(morts ? [["users", nf.format(morts), morts === 1 ? "Death" : "Deaths"]] : [])] },
     titre: `📅 On This Day in ${annee}: ${nom} Erupted, ${pays}`,
     lignes: [`🌋 Volcano: ${nom}`, `📍 Location: ${pays}`, `📅 Date: ${quand}`, ...(taille ? [`📏 Eruption Size: ${taille} (VEI ${vei})`] : []), ...(morts ? [`💀 Deaths: ${nf.format(morts)}`] : [])],
@@ -171,7 +172,8 @@ function ceJourSeisme(jour) {
   ecrireJson(join(RACINE, "public", "evenements", id, "donnees.json"), { id, lon, lat, geo: geoAutour(lon, lat) }, false);
   return {
     dossier: id, composition: "volcan-carre", type: "seisme",
-    ecran: { compte: "seismes", couleur: c.couleur, date: dateCourte(jour), pastille: "On This Day", nom, pays: nomBrut ? pays : null, ligne2: quand, coords: `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"} ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`,
+    ecran: { compte: "seismes", couleur: c.couleur, date: "", pastille: "On This Day", nom, // no date of the day top right (user, Nov 5, 2026)
+      pays: nomBrut ? pays : null, ligne2: quand, coords: `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"} ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`,
       faits: [["gauge", `M${mag.toFixed(1)}`, "Magnitude"], ...(morts ? [["users", nf.format(morts), morts === 1 ? "Death" : "Deaths"]] : tsunami ? [["alert", "Tsunami", "Followed"]] : [])] },
     titre: `📅 On This Day in ${annee}: ${nomBrut ? nom : `M${mag.toFixed(1)} Earthquake in ${pays}`}`,
     lignes: [`📏 Magnitude: ${mag.toFixed(1)} (${c.nom})`, `📍 Location: ${pays}`, `📅 Date: ${quand}`, ...(prof ? [`⬇️ Depth: ${Math.round(prof / 1.609344)} mi (${prof} km)`] : []), ...(morts ? [`💀 Deaths: ${nf.format(morts)}`] : []), ...(tsunami ? ["🌊 Followed by a tsunami"] : [])],
@@ -235,7 +237,7 @@ async function ecrireReel(id, p, jour, publier) {
   const h = await p.reel.histoire(p);
   const scenes = [...h.scenes, ...(sat ? [{ type: "satellite", texte: `Here it is from space, seen by a ${sat.capteur} satellite on ${quand}.` }] : []), { type: "fin", texte: p.reel.fin }];
   const d = { compte: p.type === "volcan" ? "volcans" : "seismes", couleur: e.couleur, lon: p.lon, lat: p.lat, pastille: e.pastille, nom: e.nom, sousTitre: e.pays && !e.nom.includes(e.pays) ? e.pays : null, ligneDate: e.ligne2, coords: e.coords,
-    faits: e.faits.map(([, v, l]) => [v, l]), satLigne: sat ? `${sat.capteur} Satellite, ${satQuand(p)}` : "", date: e.date.toUpperCase() };
+    faits: e.faits.map(([, v, l]) => [v, l]), satLigne: sat ? `${sat.capteur} Satellite, ${satQuand(p)}` : "", date: "" }; // no date of the day top right in the reels (user, Nov 5, 2026)
   const sortie = join(SORTIE, id), fichiers = await reelLieu(p.dossier, d, scenes, sortie, h.musique);
   const reseaux = publier ? ["reel"] : [], txt = texte(p), narration = scenes.map((s) => s.texte).join("\n\n");
   // Credit of the photos and videos (CC BY asks for it): author, licence, Wikimedia Commons
