@@ -58,7 +58,8 @@ export async function donneesHebdo(dateNy) {
   const t0 = ev[0].temps, t1 = ev.at(-1).temps;
   return {
     id: `hebdo-${dateNy}`, dateNy, debut, fin, n: ev.length, classes, mode,
-    periode: `${jourCourt(debut)} – ${new Date(debut).getUTCMonth() === new Date(fin - 864e5).getUTCMonth() ? new Date(fin - 864e5).getUTCDate() : jourCourt(fin - 864e5)}, ${new Date(fin - 864e5).getUTCFullYear()}`, // "Oct 21 – 27", "Oct 28 – Nov 3" semaineDe: jourCourt(debut).toUpperCase(),
+    // "Oct 21 – 27, 2026", across two months "Oct 28 – Nov 3, 2026"
+    periode: `${jourCourt(debut)} – ${new Date(debut).getUTCMonth() === new Date(fin - 864e5).getUTCMonth() ? new Date(fin - 864e5).getUTCDate() : jourCourt(fin - 864e5)}, ${new Date(fin - 864e5).getUTCFullYear()}`, semaineDe: jourCourt(debut).toUpperCase(),
     points: ev.map((e) => [Math.round(e.lon * 100) / 100, Math.round(e.lat * 100) / 100, e.mag, Math.round((e.temps - t0) / Math.max(1, t1 - t0) * 1000) / 1000, region(e.place) === nomActif ? 1 : 0]),
     fort: { ...fort, lieu: lieu(fort.place), ville: ville(fort.place), region: region(fort.place), jour: jourCourt(fort.temps), jourLong: jourLong(fort.temps), heure: heureUtc(fort.temps) },
     actif: { nom: nomActif, n: actifs.length, centre: centre(actifs.map((e) => [e.lon, e.lat])), etendue: Math.max(...actifs.map((e) => geoDistance([e.lon, e.lat], centre(actifs.map((x) => [x.lon, x.lat]))))), max: plusFortActif.mag, jourMax: jourCourt(Date.parse(jourMax)), jourMaxLong: jourLong(Date.parse(jourMax)), nJourMax, jourDuMax: jourCourt(plusFortActif.temps) },
