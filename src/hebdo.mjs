@@ -19,9 +19,13 @@ export const hebdoDu = (etat, maintenant = Date.now()) => { const n = newYork(ma
 
 // Region of a USGS place: "191 km ENE of Nagqu, China" → China ; "Bonin Islands, Japan region" → Japan ; "10 km N of X, CA" → California ;
 // "southeast of Easter Island" → Easter Island
-const region = (place = "") => { const r = nomPropre(place.split(", ").at(-1).replace(/ region$/, "")); return ETATS_US[r] ?? r; };
+// Mexican places as written by the US regional networks ("Delta, B.C., MX" → "Delta, Baja California, Mexico", Nov 5, 2026)
+const MX = { "B.C.": "Baja California", "B.C.S.": "Baja California Sur", "SON": "Sonora", "CHIH": "Chihuahua" };
+const mexique = (p) => p.at(-1) === "MX" ? [...p.slice(0, -1).map((x) => MX[x] ?? x), "Mexico"] : p;
+const region = (place = "") => { const m = mexique(place.split(", ")); if (m.at(-1) === "Mexico") return "Mexico"; return regionBrute(place); };
+const regionBrute = (place = "") => { const r = nomPropre(place.split(", ").at(-1).replace(/ region$/, "")); return ETATS_US[r] ?? r; };
 // Readable place: "191 km ENE of Nagqu, China" → "Near Nagqu, China" ; "southeast of Easter Island" → "Southeast of Easter Island"
-const lieu = (place = "") => { const m = place.match(/^\d+ km [NSEW]{1,3} of (.+)$/); const l = (m ? m[1] : titreLieu(place)).replace(/ region$/, ""); const p = l.split(", "); if (ETATS_US[p.at(-1)]) p[p.length - 1] = ETATS_US[p.at(-1)]; return (m ? "Near " : "") + p.join(", "); };
+const lieu = (place = "") => { const m = place.match(/^\d+ km [NSEW]{1,3} of (.+)$/); const l = (m ? m[1] : titreLieu(place)).replace(/ region$/, ""); const p = mexique(l.split(", ")); if (ETATS_US[p.at(-1)]) p[p.length - 1] = ETATS_US[p.at(-1)]; return (m ? "Near " : "") + p.join(", "); };
 const ville = (place = "") => lieu(place).replace(/^Near /, "");
 const jourCourt = (ms) => new Date(ms).toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 const jourLong = (ms) => new Date(ms).toLocaleString("en-US", { month: "long", day: "numeric", timeZone: "UTC" });
@@ -54,7 +58,7 @@ export async function donneesHebdo(dateNy) {
   const t0 = ev[0].temps, t1 = ev.at(-1).temps;
   return {
     id: `hebdo-${dateNy}`, dateNy, debut, fin, n: ev.length, classes, mode,
-    periode: `${jourCourt(debut)} – ${new Date(fin - 864e5).getUTCDate()}, ${new Date(fin - 864e5).getUTCFullYear()}`, semaineDe: jourCourt(debut).toUpperCase(),
+    periode: `${jourCourt(debut)} – ${new Date(debut).getUTCMonth() === new Date(fin - 864e5).getUTCMonth() ? new Date(fin - 864e5).getUTCDate() : jourCourt(fin - 864e5)}, ${new Date(fin - 864e5).getUTCFullYear()}`, // "Oct 21 – 27", "Oct 28 – Nov 3" semaineDe: jourCourt(debut).toUpperCase(),
     points: ev.map((e) => [Math.round(e.lon * 100) / 100, Math.round(e.lat * 100) / 100, e.mag, Math.round((e.temps - t0) / Math.max(1, t1 - t0) * 1000) / 1000, region(e.place) === nomActif ? 1 : 0]),
     fort: { ...fort, lieu: lieu(fort.place), ville: ville(fort.place), region: region(fort.place), jour: jourCourt(fort.temps), jourLong: jourLong(fort.temps), heure: heureUtc(fort.temps) },
     actif: { nom: nomActif, n: actifs.length, centre: centre(actifs.map((e) => [e.lon, e.lat])), etendue: Math.max(...actifs.map((e) => geoDistance([e.lon, e.lat], centre(actifs.map((x) => [x.lon, x.lat]))))), max: plusFortActif.mag, jourMax: jourCourt(Date.parse(jourMax)), jourMaxLong: jourLong(Date.parse(jourMax)), nJourMax, jourDuMax: jourCourt(plusFortActif.temps) },
