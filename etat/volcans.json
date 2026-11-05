@@ -379,11 +379,11 @@
   "kvert": 0
  },
  "290360": {
-  "eruption": true,
+  "eruption": false,
   "usgs": 0,
   "jma": 0,
   "geonet": 0,
-  "kvert": 1
+  "kvert": 0
  },
  "290380": {
   "eruption": false,
