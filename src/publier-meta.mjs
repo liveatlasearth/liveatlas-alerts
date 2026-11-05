@@ -1,11 +1,13 @@
 // Step run by the workflow after the release is created (the files then have public URLs).
 // For each alert in sortie/: Instagram and Facebook reel (if "reel") or carousel / multi-photo post (if "instagram" / "facebook").
+// Then the same post on Threads (src/threads.mjs) when the account has a token; never retried, so it cannot go out twice.
 // Writes sortie/<id>/publie.md (links of the posts) for the issue. Without the META_PAGE_TOKEN_SEISMES secret, does nothing.
 // Usage: node src/publier-meta.mjs <release base URL with {id}>   e.g. https://github.com/o/r/releases/download/alert-{id}-123
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { RACINE } from "./commun.mjs";
 import { carrouselInstagram, comptes, photosFacebook, reelFacebook, reelInstagram } from "./meta.mjs";
+import { jetonThreads, postThreads, texteThreads } from "./threads.mjs";
 
 const jetonBrut = process.env.META_PAGE_TOKEN_SEISMES, base = process.argv[2], filtre = (process.env.RESEAUX || "").split(",").filter(Boolean);
 if (!jetonBrut) { console.log("Pas de jeton Meta : publication Instagram et Facebook sautée (mode brouillon)."); process.exit(0); }
@@ -32,6 +34,9 @@ for (const id of readdirSync(SORTIE)) {
   const images = ["post-4x5.jpg", "post-4x5-secousses.jpg", "post-4x5-satellite.jpg"].filter(a).map(url);
   if (reseaux.includes("instagram") && c.ig && images.length && !(await essai("Instagram post", () => carrouselInstagram(c, images, txt.legendes.instagram, jeton)))) echecs.push("instagram");
   if (reseaux.includes("facebook") && images.length && !(await essai("Facebook post", () => photosFacebook(c, images, txt.legendes.facebook, jeton)))) echecs.push("facebook");
+  const jt = await jetonThreads(txt.type === "volcan" ? "volcan" : "seisme").catch(() => null), video = reseaux.includes("reel") && a("reel.mp4");
+  if (jt && (video || ((reseaux.includes("instagram") || reseaux.includes("facebook")) && images.length)))
+    await essai("Threads post", () => postThreads(txt.type, video ? { video: url("reel.mp4") } : { images }, texteThreads(txt.legendes.facebook), jt));
   // Earthquakes of a scheduled run: a network that failed is taken off the memory, so the next run tries again, once
   // (the "<network>_echec" mark stops a second retry). Volcanoes and the weekly reel are not retried.
   if (!filtre.length && etat[id]) for (const r of echecs) {

@@ -58,13 +58,16 @@ jobs:
             id=$(basename "$d")
             gh release create "alert-$id-$GITHUB_RUN_ID" $(ls "$d"*.jpg "$d"*.mp4 2>/dev/null) --title "$(cat "$d/titre.txt")" --notes "Images and reel of this alert. Captions: see the issue."
           done
-      - name: Publish on Instagram and Facebook
+      - name: Publish on Instagram, Facebook and Threads
         continue-on-error: true
         # Leaves time inside the job's 50 minutes for "Remember what was posted"
         timeout-minutes: 30
         if: inputs.reseaux == 'verifier' || (hashFiles('sortie/*/issue.md') != '' && (inputs.id == '' || inputs.reseaux != ''))
         env:
           META_PAGE_TOKEN_SEISMES: ${{ secrets.META_PAGE_TOKEN_SEISMES }}
+          THREADS_TOKEN_SEISMES: ${{ secrets.THREADS_TOKEN_SEISMES }}
+          THREADS_TOKEN_VOLCANS: ${{ secrets.THREADS_TOKEN_VOLCANS }}
+          THREADS_CLE: ${{ secrets.THREADS_CLE }}
           RESEAUX: ${{ inputs.reseaux }}
         run: node src/publier-meta.mjs "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/alert-{id}-$GITHUB_RUN_ID"
       # Right after publishing, and even if a step failed or the job ran out of time: posts already out must never go out twice.
@@ -75,6 +78,7 @@ jobs:
           git config user.name "liveatlas-alerts"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add etat/publies.json etat/volcans.json
+          [ -f etat/threads.json ] && git add etat/threads.json
           git diff --cached --quiet && exit 0
           git commit -m "State $(date -u +%Y-%m-%dT%H:%MZ)"
           for i in 1 2 3; do git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0; sleep 5; done; exit 1
