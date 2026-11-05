@@ -22,7 +22,7 @@ const etat = existsSync(ETAT) ? JSON.parse(readFileSync(ETAT, "utf8")) : {};
 let etatModifie = false;
 for (const id of readdirSync(SORTIE)) {
   const dir = join(SORTIE, id); if (!existsSync(join(dir, "legendes.json"))) continue;
-  const txt = JSON.parse(readFileSync(join(dir, "legendes.json"), "utf8")), reseaux = readFileSync(join(dir, "reseaux.txt"), "utf8").trim().split(",").filter((r) => !filtre.length || filtre.includes(r));
+  const txt = JSON.parse(readFileSync(join(dir, "legendes.json"), "utf8")), prevus = readFileSync(join(dir, "reseaux.txt"), "utf8").trim().split(","), reseaux = prevus.filter((r) => !filtre.length || filtre.includes(r));
   const c = await compte(txt.type), jeton = c.jeton;
   const url = (f) => `${base.replace("{id}", id)}/${f}`, a = (f) => existsSync(join(dir, f)), liens = [];
   const essai = async (nom, f) => { const t0 = Date.now(); try { const l = await f(); liens.push(`- ${nom} : ${l} (${Math.round((Date.now() - t0) / 1000)} s)`); console.log(nom, "→", l); return true; } catch (e) { liens.push(`- ${nom} : ÉCHEC ${e.message}`); console.log(nom, "échec :", e.message); return false; } };
@@ -35,8 +35,9 @@ for (const id of readdirSync(SORTIE)) {
   const images = ["post-4x5.jpg", "post-4x5-secousses.jpg", "post-4x5-photo-1.jpg", "post-4x5-photo-2.jpg", "post-4x5-satellite.jpg"].filter(a).map(url);
   if (reseaux.includes("instagram") && c.ig && images.length && !(await essai("Instagram post", () => carrouselInstagram(c, images, txt.legendes.instagram, jeton)))) echecs.push("instagram");
   if (reseaux.includes("facebook") && images.length && !(await essai("Facebook post", () => photosFacebook(c, images, txt.legendes.facebook, jeton)))) echecs.push("facebook");
-  const jt = await jetonThreads(txt.type === "volcan" ? "volcan" : "seisme").catch(() => null), video = reseaux.includes("reel") && a("reel.mp4");
-  if (jt && (video || ((reseaux.includes("instagram") || reseaux.includes("facebook")) && images.length)))
+  // Manual run with networks "threads": only the Threads post of what was planned (e.g. a reel already out on Instagram and Facebook)
+  const jt = await jetonThreads(txt.type === "volcan" ? "volcan" : "seisme").catch(() => null), seulThreads = filtre.length > 0 && filtre.every((r) => r === "threads"), vus = seulThreads ? prevus : reseaux, video = vus.includes("reel") && a("reel.mp4");
+  if (jt && (video || ((vus.includes("instagram") || vus.includes("facebook")) && images.length)))
     await essai("Threads post", () => postThreads(txt.type, video ? { video: url("reel.mp4") } : { images }, texteThreads(txt.legendes.facebook), jt));
   // Earthquakes of a scheduled run: a network that failed is taken off the memory, so the next run tries again, once
   // (the "<network>_echec" mark stops a second retry). Volcanoes and the weekly reel are not retried.
