@@ -70,3 +70,10 @@ export async function postThreads(type, { video, images = [] }, texte, jeton) {
   for (const u of images.slice(0, 20)) enfants.push((await appel(`/${moi}/threads`, { media_type: "IMAGE", image_url: u, is_carousel_item: "true" }, jeton)).id);
   return publier(moi, (await appel(`/${moi}/threads`, { media_type: "CAROUSEL", children: enfants.join(","), text: texte }, jeton)).id, jeton);
 }
+
+// Check mode (manual run with networks "verifier"): the account each token opens, nothing posted
+export async function verifierThreads(type) {
+  const jeton = await jetonThreads(type); if (!jeton) return "pas de jeton";
+  const moi = await appel("/me", { fields: "id,username" }, jeton, "GET");
+  return `@${moi.username} (${moi.id})${process.env.THREADS_CLE ? "" : " — THREADS_CLE manquant : le jeton ne sera pas rafraîchi"}`;
+}

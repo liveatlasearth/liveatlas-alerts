@@ -7,7 +7,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { RACINE } from "./commun.mjs";
 import { carrouselInstagram, comptes, photosFacebook, reelFacebook, reelInstagram } from "./meta.mjs";
-import { jetonThreads, postThreads, texteThreads } from "./threads.mjs";
+import { jetonThreads, postThreads, texteThreads, verifierThreads } from "./threads.mjs";
 
 const jetonBrut = process.env.META_PAGE_TOKEN_SEISMES, base = process.argv[2], filtre = (process.env.RESEAUX || "").split(",").filter(Boolean);
 if (!jetonBrut) { console.log("Pas de jeton Meta : publication Instagram et Facebook sautée (mode brouillon)."); process.exit(0); }
@@ -15,7 +15,8 @@ if (!jetonBrut) { console.log("Pas de jeton Meta : publication Instagram et Face
 const pages = {};
 const compte = async (type) => (pages[type] ??= await comptes(jetonBrut, type === "volcan" ? "Volcano" : "Earthquake").then((c) => { console.log(`Page ${c.nomPage} (${c.page}), Instagram ${c.ig ?? "non relié"}`); return c; }));
 // Check mode (manual run with networks "verifier"): reads both Pages and their Instagram accounts, publishes nothing
-if (filtre.includes("verifier")) { for (const t of ["seisme", "volcan"]) { const c = await compte(t); console.log(t, "→", c.nomPage, "Instagram", c.ig ? "relié" : "NON RELIÉ"); } process.exit(0); }
+if (filtre.includes("verifier")) { for (const t of ["seisme", "volcan"]) { console.log(`Threads ${t} :`, await verifierThreads(t).catch((e) => `ERREUR ${e.message}`)); }
+  for (const t of ["seisme", "volcan"]) { const c = await compte(t); console.log(t, "→", c.nomPage, "Instagram", c.ig ? "relié" : "NON RELIÉ"); } process.exit(0); }
 const SORTIE = join(RACINE, "sortie"), ETAT = join(RACINE, "etat", "publies.json");
 const etat = existsSync(ETAT) ? JSON.parse(readFileSync(ETAT, "utf8")) : {};
 let etatModifie = false;
