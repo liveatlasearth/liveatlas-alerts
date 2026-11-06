@@ -7,7 +7,7 @@
   "ingv": 2
  },
  "211060": {
-  "eruption": true,
+  "eruption": false,
   "usgs": 0,
   "jma": 0,
   "geonet": 0,
