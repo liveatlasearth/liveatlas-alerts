@@ -186,7 +186,7 @@
   "phivolcs": 1
  },
  "273030": {
-  "eruption": true,
+  "eruption": false,
   "usgs": 0,
   "jma": 0,
   "geonet": 0,
