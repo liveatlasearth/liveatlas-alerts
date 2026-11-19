@@ -54,7 +54,8 @@ for (const e of liste.slice(0, 4)) {
   mkdirSync(sortie, { recursive: true });
   if (e.reseaux.some((r) => r !== "reel")) fichiers.push(...await images(d, txt.ecran, sortie));
   if (e.reseaux.includes("reel")) {
-    if (d.pager && d.shakemap && d.villes.length) fichiers.push(...await reel(d, txt.ecran, txt.narration, sortie));
+    // A quake at sea has no PAGER city: the reel goes out without the nearest city (four M6+ reels were lost, Nov 5–18, 2026)
+    if (d.pager && d.shakemap) fichiers.push(...await reel(d, txt.ecran, txt.narration, sortie));
     else if (maintenant - d.temps < 3 * 3600e3 && !manuel) { e.reseaux = e.reseaux.filter((r) => r !== "reel"); console.log("reel : ShakeMap ou PAGER pas encore publiés, on réessaie au prochain passage"); }
     else { etat[e.id] = { ...etat[e.id], reel: `${new Date().toISOString()} sans-donnees` }; e.reseaux = e.reseaux.filter((r) => r !== "reel"); }
   }

@@ -20,7 +20,7 @@ async function appel(chemin, params, jeton, methode = "POST") {
   const u = new URL(chemin.startsWith("http") ? chemin : API + chemin);
   for (const [k, v] of Object.entries({ ...params, access_token: jeton })) u.searchParams.set(k, v);
   const r = await fetch(u, { method: methode, signal: AbortSignal.timeout(60000) }), j = await r.json().catch(() => ({}));
-  if (!r.ok || j.error) throw new Error(`Threads ${chemin}: ${j.error?.message ?? r.status}`);
+  if (!r.ok || j.error) throw new Error(`Threads ${chemin}: ${j.error?.message ?? r.status}${j.error?.error_user_msg ? ` (${j.error.error_user_msg})` : ""}${j.error?.error_subcode ? ` [${j.error.error_subcode}]` : ""}`);
   return j;
 }
 
@@ -49,15 +49,22 @@ export function texteThreads(facebook) {
   return t;
 }
 
-// Wait until a container is ready (videos take a while), then publish and return the link of the post
-async function publier(moi, conteneur, jeton) {
+// Wait until a container is ready (videos take a while; images too: Meta advises about 30 s)
+async function pret(conteneur, jeton) {
+  await attendre(5000);
   for (let i = 0; i < 40; i++) {
     const s = await appel(`/${conteneur}`, { fields: "status,error_message" }, jeton, "GET");
-    if (s.status === "FINISHED") break;
+    if (s.status === "FINISHED") return;
     if (s.status === "ERROR" || s.status === "EXPIRED") throw new Error(`conteneur ${s.status} ${s.error_message ?? ""}`);
     await attendre(i < 3 ? 5000 : 15000);
   }
-  const { id } = await appel(`/${moi}/threads_publish`, { creation_id: conteneur }, jeton);
+}
+// Then publish and return the link of the post. "The requested resource does not exist" came back a few times right after
+// FINISHED (Nov 5–18, 2026): one more try 20 s later
+async function publier(moi, conteneur, jeton) {
+  await pret(conteneur, jeton);
+  const publie = () => appel(`/${moi}/threads_publish`, { creation_id: conteneur }, jeton);
+  const { id } = await publie().catch(async (e) => { if (!/does not exist/.test(e.message)) throw e; await attendre(20000); return publie(); });
   return (await appel(`/${id}`, { fields: "permalink" }, jeton, "GET")).permalink ?? id;
 }
 
@@ -66,9 +73,17 @@ export async function postThreads(type, { video, images = [] }, texte, jeton) {
   const moi = (await appel("/me", { fields: "id" }, jeton, "GET")).id;
   if (video) return publier(moi, (await appel(`/${moi}/threads`, { media_type: "VIDEO", video_url: video, text: texte }, jeton)).id, jeton);
   if (images.length === 1) return publier(moi, (await appel(`/${moi}/threads`, { media_type: "IMAGE", image_url: images[0], text: texte }, jeton)).id, jeton);
-  const enfants = [];
-  for (const u of images.slice(0, 20)) enfants.push((await appel(`/${moi}/threads`, { media_type: "IMAGE", image_url: u, is_carousel_item: "true" }, jeton)).id);
-  return publier(moi, (await appel(`/${moi}/threads`, { media_type: "CAROUSEL", children: enfants.join(","), text: texte }, jeton)).id, jeton);
+  // Carousel: every image ready before the carousel container ("Invalid parameter" otherwise, Nov 11–18, 2026); if it still
+  // fails, the first image alone
+  try {
+    const enfants = [];
+    for (const u of images.slice(0, 20)) enfants.push((await appel(`/${moi}/threads`, { media_type: "IMAGE", image_url: u, is_carousel_item: "true" }, jeton)).id);
+    for (const e of enfants) await pret(e, jeton);
+    return await publier(moi, (await appel(`/${moi}/threads`, { media_type: "CAROUSEL", children: enfants.join(","), text: texte }, jeton)).id, jeton);
+  } catch (e) {
+    console.log("Threads : carrousel refusé, image seule :", e.message);
+    return publier(moi, (await appel(`/${moi}/threads`, { media_type: "IMAGE", image_url: images[0], text: texte }, jeton)).id, jeton);
+  }
 }
 
 // Check mode (manual run with networks "verifier"): the account each token opens, nothing posted

@@ -50,9 +50,12 @@ export async function donnees(id) {
   const bbox = [lat - 1.2, lon - 1.35, lat + 1.2, lon + 1.35].map((x) => x.toFixed(3)).join(",");
   const gibs = (c) => `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=${c}&CRS=EPSG:4326&BBOX=${bbox}&WIDTH=1080&HEIGHT=960&FORMAT=image/jpeg`;
   const lendemain = new Date(P.time + 86400e3).toISOString().slice(0, 10), jourDispo = Date.now() - P.time > 30 * 3600e3;
-  const sat = jourDispo ? { fichier: "sat-jour.jpg", couche: `MODIS_Terra_CorrectedReflectance_TrueColor&TIME=${lendemain}`, jour: lendemain } : { fichier: "sat-blue-marble.jpg", couche: "BlueMarble_NextGeneration", jour: null };
-  const r = await fetch(gibs(sat.couche), { signal: AbortSignal.timeout(60000) }); mkdirSync(dossier, { recursive: true });
-  if (r.ok) { writeFileSync(join(dossier, sat.fichier), Buffer.from(await r.arrayBuffer())); }
+  const marble = { fichier: "sat-blue-marble.jpg", couche: "BlueMarble_NextGeneration", jour: null };
+  let sat = jourDispo ? { fichier: "sat-jour.jpg", couche: `MODIS_Terra_CorrectedReflectance_TrueColor&TIME=${lendemain}`, jour: lendemain } : marble;
+  let r = await fetch(gibs(sat.couche), { signal: AbortSignal.timeout(60000) }), img = r.ok ? Buffer.from(await r.arrayBuffer()) : null; mkdirSync(dossier, { recursive: true });
+  // A MODIS swath gap comes back almost black: a JPEG under 60 KB (M6.6 Tual, Nov 16, 2026: 29 KB). Blue Marble instead
+  if (sat !== marble && (!img || img.length < 60e3)) { sat = marble; r = await fetch(gibs(sat.couche), { signal: AbortSignal.timeout(60000) }); img = r.ok ? Buffer.from(await r.arrayBuffer()) : null; }
+  if (img) writeFileSync(join(dossier, sat.fichier), img);
 
   const ex = expo?.population_exposure?.aggregated_exposure ?? [];
   const sortie = {
