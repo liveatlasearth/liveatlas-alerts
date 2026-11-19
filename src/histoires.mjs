@@ -37,7 +37,7 @@ const SONS = {
 // Shaking of a past earthquake (user request of Nov 5, 2026, like the ShakeMap of the alert reels): the USGS event within 2 min
 // and 150 km of the NCEI time, its ShakeMap intensity contours and the PAGER cities, written to public/evenements/<dossier>/secousses.json
 const MOT_MMI = { 4: "light", 5: "moderate", 6: "strong", 7: "very strong", 8: "severe", 9: "violent", 10: "extreme" };
-async function secousses(t, lat, lon, mag, dossier) {
+export async function secousses(t, lat, lon, mag, dossier) {
   const q = await json(`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${new Date(t - 120e3).toISOString()}&endtime=${new Date(t + 120e3).toISOString()}&latitude=${lat}&longitude=${lon}&maxradiuskm=150&minmagnitude=${mag - 0.7}`);
   const ev = q.features.sort((a, b) => b.properties.mag - a.properties.mag)[0]; if (!ev) return null;
   const p = (await json(`https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=${ev.id}&format=geojson`)).properties.products;

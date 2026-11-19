@@ -172,7 +172,8 @@ function secousses(k, G, E, S, s, d, x, t0, t) {
     k.globalAlpha = a; k.beginPath(); g(z); k.strokeStyle = MMI[z.properties.mmi] ?? "#fff"; k.lineWidth = 6; k.shadowColor = k.strokeStyle; k.shadowBlur = 14; k.stroke();
   }
   k.shadowBlur = 0; k.globalAlpha = 1;
-  repere(k, p([d.lon, d.lat]), d, t);
+  const qc = p([d.lon, d.lat]); repere(k, qc, d, t);
+  if (s.ou) fiche(k, qc, [d.nom, d.coords, d.ligneDate ?? ""].filter(Boolean), d.couleur, t0 * 2 - 1.5); // reel of several quakes: which one
   const places = [];
   (s.villes ?? []).slice(0, 4).forEach((c, j) => {
     const q = p([c.lon, c.lat]); if (!q || q[1] > 1000 || places.some((o) => Math.abs(o[0] - q[0]) < 260 && Math.abs(o[1] - q[1]) < 60)) return; // names never on top of each other
@@ -184,7 +185,7 @@ function secousses(k, G, E, S, s, d, x, t0, t) {
   k.globalAlpha = 1; voile(k);
   k.globalAlpha = clamp(t0 * 3); if (s.sur) pastille(k, 70, 1100, s.sur, d.couleur);
   k.fillStyle = MMI[s.mmi] ?? d.couleur; ligne(k, s.mot.replace(/\b\w/g, (c) => c.toUpperCase()), 62, 1330, 170, 800, MMI[s.mmi] ?? d.couleur, 950);
-  k.fillStyle = "#fff"; k.font = `700 48px ${F.b}`; k.textAlign = "left"; k.textBaseline = "alphabetic"; k.fillText("Strongest Shaking", 70, 1410);
+  k.fillStyle = "#fff"; k.font = `700 48px ${F.b}`; k.textAlign = "left"; k.textBaseline = "alphabetic"; k.fillText(s.titre ?? "Strongest Shaking", 70, 1410);
   k.font = `500 30px ${F.m}`; k.fillStyle = C.gris; if ("letterSpacing" in k) k.letterSpacing = "3px";
   k.fillText(`INTENSITY ${ROMAIN[s.mmi] ?? s.mmi} · USGS SHAKEMAP`, 70, 1475); if ("letterSpacing" in k) k.letterSpacing = "0px";
   k.globalAlpha = 1;
@@ -206,16 +207,18 @@ function satellite(k, sat, d, x) {
   k.fillText(d.satLigne.toUpperCase(), 70, 1750); if ("letterSpacing" in k) k.letterSpacing = "0px"; k.globalAlpha = 1;
 }
 
-function image(k, R, d, sc, t) {
-  const { G, E, S, img, sat, medias } = R;
+function image(k, R, d0, sc, t) {
+  const { G, E, img, sat, medias } = R;
   const i = Math.max(0, sc.findIndex((s) => t < s.a)), s = sc[i] ?? sc.at(-1), x = (t - s.de) / (s.a - s.de), t0 = t - s.de, type = s.type;
+  // A scene can be about another place (s.ou: lon, lat, nom, coords, ligneDate, faits…), e.g. a reel of several earthquakes
+  const d = s.ou ? { ...d0, ...s.ou } : d0, S = R.S[i];
   if (type === "media" && s.video) k.clearRect(0, 0, 1080, 1920);
   else { k.fillStyle = C.fond; k.fillRect(0, 0, 1080, 1920); }
   if (type === "media") { if (!s.video) photo(k, medias[i], x, d, s, i === 0, t0); textesMedia(k, s, d, x, t0); }
   else if (type === "accroche") {
     const v = { lon: lerp(d.lon - 50, d.lon, ease(x)), lat: lerp(0, Math.max(-35, Math.min(35, d.lat * 0.6)), ease(x)), cy: 620, R: 470 };
     const p = globe(k, G, v, []);
-    k.globalAlpha = clamp(x * 3 - 0.8); repere(k, p([d.lon, d.lat]), d, t); k.globalAlpha = 1;
+    k.globalAlpha = clamp(x * 3 - 0.8); for (const [lo, la] of s.points ?? [[d.lon, d.lat]]) repere(k, p([lo, la]), d, t); k.globalAlpha = 1;
     voile(k);
     pastille(k, 70, 1050, d.pastille, d.couleur);
     ligne(k, d.nom, 66, 1250, 120, 800, "#fff");
@@ -266,7 +269,7 @@ export const ReelLieu = ({ dossier, d, scenes, audio, couverture }) => {
     Promise.all([lire("geo/monde.json"), lire("geo/etiquettes.json"), charger(staticFile(`pastilles/${d.compte}.svg`)),
       scenes.some((s) => s.type === "satellite") ? charger(staticFile(`${dossier}/satellite.jpg`)) : null,
       Promise.all(scenes.map((s) => (s.type === "media" && !s.video ? charger(staticFile(s.fichier)) : null))),
-      scenes.some((s) => s.type === "secousses") ? lire(`${dossier}/secousses.json`) : null])
+      Promise.all(scenes.map((s) => (s.type === "secousses" ? lire(s.secousses ?? `${dossier}/secousses.json`) : null)))])
       .then(([G, E, img, sat, medias, S]) => { setRes({ G, E, img, sat, medias, S }); continueRender(h); });
   }, [h]);
   useLayoutEffect(() => {

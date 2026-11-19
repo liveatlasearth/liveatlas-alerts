@@ -14,6 +14,7 @@ import { donnees } from "./donnees.mjs";
 import { textes } from "./textes.mjs";
 import { fermer, images, imagesVolcan, reel, reelHebdo } from "./rendre.mjs";
 import { donneesHebdo, ecrireHebdo, hebdoDu, textesHebdo } from "./hebdo.mjs";
+import { rattrapage } from "./rattrapage.mjs";
 import { rubriques } from "./rubriques.mjs";
 import { brouillon } from "./publier.mjs";
 import { detecterVolcans, donneesVolcan, lireVolcans, memoriser, niveaux, textesVolcan } from "./volcans.mjs";
@@ -23,12 +24,12 @@ const lire = (f) => { try { return JSON.parse(readFileSync(f, "utf8")); } catch 
 const etat = lire(ETAT), etatV = lire(ETAT_V), maintenant = Date.now(), aujourdhui = new Date().toISOString().slice(0, 10);
 mkdirSync(SORTIE, { recursive: true });
 const manuel = process.argv[2];
-if (manuel && !/^(v?[a-z0-9]{2,30}|hebdo:\d{4}-\d\d-\d\d|rubrique:[a-z-]{4,20}(:\d{4}-\d\d-\d\d(:\d{6})?)?)$/.test(manuel)) throw new Error(`Identifiant refusé : ${manuel}`);
+if (manuel && !/^(v?[a-z0-9]{2,30}|hebdo:\d{4}-\d\d-\d\d|rubrique:[a-z-]{4,20}(:\d{4}-\d\d-\d\d(:\d{6})?)?|rattrapage:[a-z0-9]{6,20}(,[a-z0-9]{6,20}){1,7})$/.test(manuel)) throw new Error(`Identifiant refusé : ${manuel}`);
 const resume = [];
 
 // ---------- Earthquakes ----------
 let liste = [];
-if (manuel && !manuel.startsWith("v") && !manuel.startsWith("hebdo") && !manuel.startsWith("rubrique")) {
+if (manuel && !manuel.startsWith("v") && !manuel.startsWith("hebdo") && !manuel.startsWith("rubrique") && !manuel.startsWith("rattrapage")) {
   const q = await json(`https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/${manuel}.geojson`);
   // Manual run: only what was asked (RESEAUX, e.g. "instagram,facebook"), so a reel and its narration are not made for nothing; empty = everything (preview)
   const demande = (process.env.RESEAUX ?? "").split(",").map((r) => r.trim()).filter((r) => ["x", "instagram", "facebook", "reel"].includes(r));
@@ -104,6 +105,9 @@ if (!manuel || manuel.startsWith("v")) try {
 if (!manuel || manuel.startsWith("rubrique")) try {
   resume.push(...await rubriques(etat, maintenant, faitsDuJour, manuel));
 } catch (e) { if (manuel) throw e; console.log("Rubriques : échec, on réessaie au prochain passage :", e.message); }
+
+// ---------- Catch-up reel of several earthquakes, by hand only (src/rattrapage.mjs) ----------
+if (manuel?.startsWith("rattrapage:")) resume.push(await rattrapage(manuel.slice(11).split(",")));
 
 // ---------- Weekly reel "This Week in Earthquakes" (Wednesday 12:00 PM New York time) ----------
 // By hand: node src/principal.mjs hebdo:2026-10-28 (the Wednesday of the week to build). At most 3 tries per week (voice credits).
